@@ -7,6 +7,7 @@ import io.ktor.server.application.install
 import org.koin.dsl.module
 import org.koin.ktor.plugin.Koin
 import org.koin.logger.slf4jLogger
+import ru.guap.service.PoiService
 import ru.guap.service.RemoteTerminalService
 
 fun Application.configureFrameworks() {
@@ -21,6 +22,9 @@ fun Application.configureFrameworks() {
             }
             single<RemoteTerminalService> {
                 RemoteTerminalService(get())
+            }
+            single<PoiService> {
+                PoiService(get())
             }
         })
     }

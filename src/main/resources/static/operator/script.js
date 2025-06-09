@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let wsStatus; // Экземпляр WebSocket для обновления статусов
 
     // Инициализация: загрузка списка POI, статусов, очереди команд и запуск WebSocket
-    fetch('/api/poi')
+    fetch('http://localhost:8080/api/poi')
         .then(res => res.json())
         .then(data => renderPoi(data)); // Загрузка и отображение списка POI
 
@@ -64,13 +64,13 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         // Отправка нового POI на сервер
-        fetch('/api/poi', {
+        fetch('http://localhost:8080/api/poi', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ name, X, Y, T })
         })
             .then(res => res.json())
-            .then(() => fetch('/api/poi')) // Обновление списка POI
+            .then(() => fetch('http://localhost:8080/api/poi')) // Обновление списка POI
             .then(res => res.json())
             .then(data => renderPoi(data)); // Отображение обновленного списка POI
     });
@@ -110,8 +110,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // Добавление обработчиков для кнопок "Удалить"
         document.querySelectorAll('.delPoi').forEach(btn => btn.addEventListener('click', e => {
             const name = e.target.dataset.name;
-            fetch(`/api/poi/${encodeURIComponent(name)}`, { method: 'DELETE' })
-                .then(() => fetch('/api/poi')) // Обновление списка POI
+            fetch(`http://localhost:8080/api/poi/${encodeURIComponent(name)}`, { method: 'DELETE' })
+                .then(() => fetch('http://localhost:8080/api/poi')) // Обновление списка POI
                 .then(res => res.json())
                 .then(data => renderPoi(data)); // Отображение обновленного списка POI
         }));

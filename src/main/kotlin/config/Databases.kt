@@ -10,6 +10,7 @@ import org.koin.ktor.ext.inject
 
 enum class Collections(val collectionName: String) {
     COMMANDS("commands"),
+    POI("poi"),
     LOGS("logs")
 }
 

@@ -1,0 +1,135 @@
+/* Общие стили для интерфейса инженера */
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    display: flex;
+    height: 100vh;
+}
+
+.sidebar {
+    width: 250px;
+    background: #2c3e50;
+    color: #ecf0f1;
+    padding: 20px;
+    box-sizing: border-box;
+    overflow-y: auto;
+}
+
+.sidebar h2 {
+    margin-top: 0;
+    font-size: 18px;
+}
+
+.sidebar label {
+    display: block;
+    margin: 10px 0 5px;
+}
+
+.sidebar input[type="number"],
+.sidebar input[type="text"] {
+    width: 100%;
+    padding: 5px;
+    box-sizing: border-box;
+    margin-bottom: 5px;
+}
+
+.sidebar button {
+    margin-top: 10px;
+    padding: 8px 12px;
+    background: #2980b9;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    width: 100%;
+}
+
+.sidebar button:hover {
+    background: #3498db;
+}
+
+.main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.header {
+    background: #34495e;
+    color: #ecf0f1;
+    padding: 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header h1 {
+    margin: 0;
+    font-size: 20px;
+}
+
+.header button {
+    padding: 6px 10px;
+    background: #e74c3c;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+}
+
+.content {
+    flex: 1;
+    display: grid;
+    grid-template-rows: 1fr 1fr;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+.panel {
+    background: #ecf0f1;
+    padding: 10px;
+    box-sizing: border-box;
+    overflow: auto;
+    border: 1px solid #bdc3c7;
+}
+
+.panel h3 {
+    margin-top: 0;
+    font-size: 16px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+table,
+th,
+td {
+    border: 1px solid #7f8c8d;
+}
+
+th,
+td {
+    padding: 4px;
+    text-align: center;
+    font-size: 12px;
+}
+
+.highlight-warning {
+    background: #f1c40f;
+}
+
+.highlight-critical {
+    background: #e74c3c;
+    color: #fff;
+}
+
+.charts {
+    height: 100%;
+}
+
+.log {
+    height: 100%;
+    overflow-y: scroll;
+}

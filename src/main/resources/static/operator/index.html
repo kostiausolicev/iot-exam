@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>OperatorInterfaceR</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<!-- Левая панель: переключатели и POI-управление -->
+<div class="sidebar">
+    <h2>Инструментальная панель</h2>
+    <!-- Переключатель приема данных -->
+    <label><input type="checkbox" id="toggleReceive" checked> Получение данных</label>
+    <!-- Переключатель отправки команд -->
+    <label><input type="checkbox" id="toggleSend" checked> Отправка команд</label>
+
+    <h3>POI-управление</h3>
+    <!-- Таблица POI (заполняется JS) -->
+    <table class="poi-table" id="poiTable">
+        <thead>
+        <tr>
+            <th>Имя</th>
+            <th>X</th>
+            <th>Y</th>
+            <th>T</th>
+            <th>Действие</th>
+            <th>Удалить</th>
+        </tr>
+        </thead>
+        <tbody>
+        <!-- JS заполнит -->
+        </tbody>
+    </table>
+    <h4>Новый POI</h4>
+    <!-- Поля для добавления нового POI -->
+    <label for="poiName">Имя</label><input type="text" id="poiName">
+    <label for="poiX">X</label><input type="number" id="poiX">
+    <label for="poiY">Y</label><input type="number" id="poiY">
+    <label for="poiT">T</label><input type="number" id="poiT">
+    <button id="addPoi">Сохранить POI</button>
+</div>
+
+<!-- Основная область: заголовок и 4 панели -->
+<div class="main">
+    <div class="header">
+        <h1>Интерфейс оператора</h1>
+        <!-- Кнопка смены роли на инженера -->
+        <button id="switchRoleOp">Сменить роль</button>
+    </div>
+    <div class="content">
+        <!-- Панель статусов роботов и ламп -->
+        <div class="panel" id="statusPanel">
+            <h3>Текущие статусы</h3>
+            <!-- Блок для карточек роботов -->
+            <div id="robotsStatus">
+                <!-- JS добавит карточки для каждого робота -->
+            </div>
+            <!-- Блок индикаторов ламп -->
+            <div id="lampsStatus">
+                <div>Лампы:
+                    <span class="indicator" id="indL1"></span>
+                    <span class="indicator" id="indL2"></span>
+                    <span class="indicator" id="indL3"></span>
+                    <span class="indicator" id="indL4"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Панель ручной команды -->
+        <div class="panel" id="manualPanel">
+            <h3>Ручная команда</h3>
+            <label for="cmdDeviceId">ID устройства</label>
+            <select id="cmdDeviceId">
+                <option value="1">Робот 1</option>
+                <option value="2">Робот 2</option>
+            </select>
+            <!-- Поля для ввода параметров команды -->
+            <label for="cmdX">X</label><input type="number" id="cmdX">
+            <label for="cmdY">Y</label><input type="number" id="cmdY">
+            <label for="cmdT">T</label><input type="number" id="cmdT">
+            <label for="cmdG">G</label><input type="number" id="cmdG" min="0" max="1">
+            <label for="cmdV">V</label><input type="number" id="cmdV" min="0" max="1">
+            <h4>Управление лампами</h4>
+            <!-- Чекбоксы для управления лампами -->
+            <label><input type="checkbox" id="cmdL1"> L1</label>
+            <label><input type="checkbox" id="cmdL2"> L2</label>
+            <label><input type="checkbox" id="cmdL3"> L3</label>
+            <label><input type="checkbox" id="cmdL4"> L4</label>
+            <button id="sendCommand">Отправить команду</button>
+        </div>
+
+        <!-- Панель очереди команд -->
+        <div class="panel" id="queuePanel">
+            <h3>Очередь команд</h3>
+            <!-- Таблица очереди команд (заполняется JS) -->
+            <table class="queue-table" id="queueTable">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Устройство</th>
+                    <th>Параметры</th>
+                    <th>Статус</th>
+                    <th>Время</th>
+                    <th>Удалить</th>
+                </tr>
+                </thead>
+                <tbody>
+                <!-- JS заполнит -->
+                </tbody>
+            </table>
+            <button id="refreshQueue">Обновить</button>
+        </div>
+
+        <!-- Панель лога операторских событий -->
+        <div class="panel" id="eventLogPanel">
+            <h3>Лог операторских событий</h3>
+            <div id="eventLog" style="height: 100%; overflow-y: scroll;"></div>
+            <button id="clearEvents">Очистить лог</button>
+        </div>
+    </div>
+</div>
+<script src="script.js"></script>
+</body>
+</html>

@@ -1,6 +1,5 @@
 package ru.guap.dto
 
-import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import org.bson.codecs.pojo.annotations.BsonProperty
 import ru.guap.config.AnyMapSerializer

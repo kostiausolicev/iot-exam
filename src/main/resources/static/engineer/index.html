@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>EngineerInterfaceR</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<!-- Левая панель: сбор данных, сохранение, частота, пороги -->
+<div class="sidebar">
+  <h2>Инструментальная панель</h2>
+  <!-- Переключатель сбора данных -->
+  <label><input type="checkbox" id="toggleCollect" checked> Сбор данных</label>
+  <!-- Переключатель сохранения в БД -->
+  <label><input type="checkbox" id="toggleSave" checked> Сохранение в БД</label>
+  <!-- Поле для частоты обновления данных -->
+  <label for="updateFreq">Частота обновления (сек)</label>
+  <input type="number" id="updateFreq" value="2" min="1">
+
+  <h3>Пороговые значения</h3>
+  <!-- Блок для динамической отрисовки пороговых значений всех параметров -->
+  <div id="thresholds">
+    <!-- JS заполнит поля для m1..m6, t1..t6, l1..l6, X, Y, T, G, V -->
+  </div>
+  <button id="saveThresholds">Сохранить пороги</button>
+</div>
+
+<!-- Основная область: заголовок и 4 панели -->
+<div class="main">
+  <div class="header">
+    <h1>Интерфейс инженера-технолога</h1>
+    <!-- Кнопка смены роли на оператора -->
+    <button id="switchRole">Сменить роль</button>
+  </div>
+  <div class="content">
+    <!-- Панель Raw Data -->
+    <div class="panel" id="rawDataPanel">
+      <h3>Raw Data</h3>
+      <table id="rawDataTable">
+        <thead>
+        <tr>
+          <th>Устройство</th>
+          <th>m1</th>
+          <th>m2</th>
+          <th>m3</th>
+          <th>m4</th>
+          <th>m5</th>
+          <th>m6</th>
+          <th>t1</th>
+          <th>t2</th>
+          <th>t3</th>
+          <th>t4</th>
+          <th>t5</th>
+          <th>t6</th>
+          <th>l1</th>
+          <th>l2</th>
+          <th>l3</th>
+          <th>l4</th>
+          <th>l5</th>
+          <th>l6</th>
+          <th>X</th>
+          <th>Y</th>
+          <th>T</th>
+          <th>G</th>
+          <th>V</th>
+          <th>code</th>
+          <th>p</th>
+          <th>b1</th>
+          <th>b2</th>
+          <th>b3</th>
+        </tr>
+        </thead>
+        <tbody>
+        <!-- JS заполняет данными -->
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Панель Physical Data -->
+    <div class="panel" id="physicalDataPanel">
+      <h3>Physical Data</h3>
+      <table id="physicalDataTable">
+        <thead>
+        <tr>
+          <th>Устройство</th>
+          <th>θ1</th>
+          <th>θ2</th>
+          <th>θ3</th>
+          <th>θ4</th>
+          <th>θ5</th>
+          <th>θ6</th>
+          <th>T1</th>
+          <th>T2</th>
+          <th>T3</th>
+          <th>T4</th>
+          <th>T5</th>
+          <th>T6</th>
+          <th>L1</th>
+          <th>L2</th>
+          <th>L3</th>
+          <th>L4</th>
+          <th>L5</th>
+          <th>L6</th>
+          <th>X</th>
+          <th>Y</th>
+          <th>T</th>
+          <th>G</th>
+          <th>V</th>
+          <th>code</th>
+          <th>p</th>
+          <th>b1</th>
+          <th>b2</th>
+          <th>b3</th>
+        </tr>
+        </thead>
+        <tbody>
+        <!-- JS заполняет данными и добавляет подсветку статусов -->
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Панель Графиков -->
+    <div class="panel" id="chartsPanel">
+      <h3>Графики</h3>
+      <label for="fromTime">С</label>
+      <input type="datetime-local" id="fromTime">
+      <label for="toTime">По</label>
+      <input type="datetime-local" id="toTime">
+      <div>
+        <!-- Чекбоксы для выбора серий данных -->
+        <label><input type="checkbox" class="chartParam" value="theta"> Углы θ1..θ6</label>
+        <label><input type="checkbox" class="chartParam" value="temp"> Температура T1..T6</label>
+        <label><input type="checkbox" class="chartParam" value="load"> Нагрузка L1..L6</label>
+        <label><input type="checkbox" class="chartParam" value="position"> X, Y, T</label>
+      </div>
+      <button id="buildChart">Построить</button>
+      <canvas id="dataChart" class="charts"></canvas>
+    </div>
+
+    <!-- Панель Истории данных -->
+    <div class="panel" id="historyPanel">
+      <h3>История данных</h3>
+      <label for="histFrom">С</label>
+      <input type="datetime-local" id="histFrom">
+      <label for="histTo">По</label>
+      <input type="datetime-local" id="histTo">
+      <button id="loadHistory">Загрузить</button>
+      <table id="historyTable">
+        <thead>
+        <tr>
+          <th>Timestamp</th>
+          <th>Устройство</th>
+          <th>Raw</th>
+          <th>Physical</th>
+          <th>Статус</th>
+        </tr>
+        </thead>
+        <tbody>
+        <!-- JS заполняет данными -->
+        </tbody>
+      </table>
+      <div style="margin-top: 5px; text-align: center;">
+        <button id="prevPage">Предыдущая</button>
+        <span id="pageInfo">Стр. 1</span>
+        <button id="nextPage">Следующая</button>
+      </div>
+    </div>
+
+    <!-- Панель Лога критических событий -->
+    <div class="panel log" id="alertLogPanel">
+      <h3>Лог критических событий</h3>
+      <div id="alertLog">
+        <!-- Записи лога добавляет JS -->
+      </div>
+      <button id="clearLog">Очистить лог</button>
+    </div>
+  </div>
+</div>
+
+<!-- Подключение библиотеки Chart.js для графиков -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

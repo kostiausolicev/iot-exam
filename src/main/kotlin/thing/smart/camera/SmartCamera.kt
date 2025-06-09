@@ -1,8 +1,8 @@
 package ru.guap.thing.smart.camera
 
-import ru.guap.thing.Connectable
+import ru.guap.thing.Device
 
-class SmartCamera : Connectable {
+class SmartCamera(override var id: Int) : Device {
     private var status: Boolean = false
 
     fun read() {
@@ -16,4 +16,6 @@ class SmartCamera : Connectable {
     override fun isConnected(): Boolean {
         return status
     }
+
+    override fun deviceName(): String = "SmartCamera"
 }

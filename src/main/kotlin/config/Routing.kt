@@ -7,16 +7,16 @@ import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
+import ru.guap.commandController
 
 fun Application.configureRouting() {
     install(StatusPages) {
+        exception<IllegalArgumentException> { call, cause ->
+            call.respondText(text = "400: $cause", status = HttpStatusCode.BadRequest)
+        }
         exception<Throwable> { call, cause ->
             call.respondText(text = "500: $cause", status = HttpStatusCode.InternalServerError)
         }
     }
-    routing {
-        get("/") {
-            call.respondText("Hello World!")
-        }
-    }
+    commandController()
 }

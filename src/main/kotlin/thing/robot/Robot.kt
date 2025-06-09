@@ -1,9 +1,9 @@
 package ru.guap.thing.robot
 
-import ru.guap.thing.Connectable
+import ru.guap.thing.Device
 import ru.guap.thing.robot.component.Servo
 
-abstract class Robot : Connectable {
+abstract class Robot : Device {
     private val servo1: Servo
     private val servo2: Servo
     private val servo3: Servo
@@ -29,7 +29,6 @@ abstract class Robot : Connectable {
         this.servo6 = servo6
     }
 
-    abstract fun type(): String
     abstract fun moveTo(x: Int, y: Int, z: Int)
     abstract fun grab()
     abstract fun turn(angle: Int)

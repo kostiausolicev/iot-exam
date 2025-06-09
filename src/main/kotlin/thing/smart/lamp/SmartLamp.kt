@@ -1,8 +1,8 @@
 package ru.guap.thing.smart.lamp
 
-import ru.guap.thing.Connectable
+import ru.guap.thing.Device
 
-class SmartLamp : Connectable {
+class SmartLamp(override var id: Int) : Device {
     private var status: Boolean = false
     private var l1: Boolean = false // Синяя - выполнение
     private var l2: Boolean = false // Красная - авария
@@ -31,4 +31,6 @@ class SmartLamp : Connectable {
     override fun isConnected(): Boolean {
         return status
     }
+
+    override fun deviceName(): String = "SmartLamp"
 }

@@ -2,7 +2,7 @@ package ru.guap.thing.robot
 
 import ru.guap.thing.robot.component.Servo
 
-class VacuumRobot : Robot(
+class VacuumRobot(override var id: Int) : Robot(
     servo1 = Servo(),
     servo2 = Servo(),
     servo3 = Servo(),
@@ -10,10 +10,6 @@ class VacuumRobot : Robot(
     servo5 = Servo(),
     servo6 = null
 ) {
-    override fun type(): String {
-        return "Applied Robotics AR-RTK-PL-01"
-    }
-
     override fun moveTo(x: Int, y: Int, z: Int) {
         TODO("Not yet implemented")
     }
@@ -25,4 +21,6 @@ class VacuumRobot : Robot(
     override fun turn(angle: Int) {
         TODO("Not yet implemented")
     }
+
+    override fun deviceName(): String = "Vacuum Robot: Applied Robotics AR-RTK-PL-01"
 }

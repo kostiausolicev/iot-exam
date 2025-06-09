@@ -1,4 +1,4 @@
-package ru.guap
+package ru.guap.controller
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
@@ -11,9 +11,10 @@ import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import org.koin.ktor.ext.inject
 import ru.guap.dto.SendCommandDto
+import ru.guap.service.RemoteTerminalService
 
 fun Application.commandController() {
-    val remoteTerminalService by inject<ru.guap.service.RemoteTerminalService>()
+    val remoteTerminalService by inject<RemoteTerminalService>()
     routing {
         route("/api/commands") {
             post {

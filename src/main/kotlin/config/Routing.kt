@@ -5,9 +5,7 @@ import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.response.respondText
-import io.ktor.server.routing.get
-import io.ktor.server.routing.routing
-import ru.guap.commandController
+import ru.guap.controller.commandController
 
 fun Application.configureRouting() {
     install(StatusPages) {

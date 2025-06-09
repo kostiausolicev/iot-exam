@@ -10,7 +10,7 @@ import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import org.koin.ktor.ext.inject
-import ru.guap.ru.guap.dto.PoiDto
+import ru.guap.dto.PoiDto
 import ru.guap.service.PoiService
 
 fun Application.poiController() {

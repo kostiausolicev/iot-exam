@@ -4,7 +4,7 @@ import com.mongodb.client.model.Filters
 import com.mongodb.kotlin.client.coroutine.MongoDatabase
 import kotlinx.coroutines.flow.toList
 import ru.guap.config.Collections
-import ru.guap.ru.guap.dto.PoiDto
+import ru.guap.dto.PoiDto
 
 class PoiService(
     private val mongoDatabase: MongoDatabase

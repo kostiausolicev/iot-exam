@@ -4,6 +4,7 @@ import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.descriptors.PrimitiveKind
@@ -26,12 +27,33 @@ import kotlinx.serialization.json.double
 import kotlinx.serialization.json.doubleOrNull
 import kotlinx.serialization.json.int
 import kotlinx.serialization.json.intOrNull
+import org.bson.BsonDateTime
+import org.bson.codecs.kotlinx.BsonDecoder
+import org.bson.codecs.kotlinx.BsonEncoder
+import java.sql.Timestamp
+import java.time.Instant
 import java.time.LocalDateTime
+import java.time.ZoneOffset
+import kotlin.time.ExperimentalTime
 
 object LocalDateSerializer : KSerializer<LocalDateTime> {
     override val descriptor = PrimitiveSerialDescriptor("LocalDate", PrimitiveKind.STRING)
-    override fun serialize(encoder: Encoder, value: LocalDateTime) = encoder.encodeString(value.toString())
-    override fun deserialize(decoder: Decoder): LocalDateTime = LocalDateTime.parse(decoder.decodeString())
+    @OptIn(ExperimentalSerializationApi::class)
+    override fun serialize(encoder: Encoder, value: LocalDateTime) {
+        when(encoder) {
+            is BsonEncoder -> encoder.encodeBsonValue(BsonDateTime(value.toEpochSecond(ZoneOffset.UTC)))
+            else -> encoder.encodeString(value.toString())
+        }
+    }
+    @OptIn(ExperimentalTime::class)
+    override fun deserialize(decoder: Decoder): LocalDateTime {
+        return when(decoder) {
+            is BsonDecoder -> Timestamp.from(
+                Instant.ofEpochMilli(decoder.decodeBsonValue().asDateTime().value)
+            ).toLocalDateTime()
+            else -> LocalDateTime.parse(decoder.decodeString())
+        }
+    }
 }
 
 object AnyMapSerializer : KSerializer<Map<String, Any?>> {

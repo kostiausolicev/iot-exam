@@ -1,6 +1,7 @@
 package ru.guap.config
 
-import com.mongodb.client.MongoDatabase
+import com.mongodb.kotlin.client.coroutine.MongoClient
+import com.mongodb.kotlin.client.coroutine.MongoDatabase
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import org.koin.dsl.module
@@ -12,6 +13,9 @@ fun Application.configureFrameworks() {
     install(Koin) {
         slf4jLogger()
         modules(module {
+            single<MongoClient> {
+                getMongoDbClient()
+            }
             single<MongoDatabase> {
                 connectToMongoDB()
             }

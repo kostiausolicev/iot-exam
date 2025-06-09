@@ -11,6 +11,13 @@ abstract class Robot : Device {
     private val servo5: Servo
     private val servo6: Servo?
 
+    var X: Int = 0
+        protected set
+    var Y: Int = 0
+        protected set
+    var T: Int = 0
+        protected set
+
     private var status: Boolean = false
 
     protected constructor(

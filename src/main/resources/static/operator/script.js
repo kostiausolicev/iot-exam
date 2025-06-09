@@ -21,6 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
         .then(res => res.json())
         .then(data => renderPoi(data)); // Загрузка и отображение списка POI
 
+    console.log("123")
     fetchStatuses(); // Загрузка начальных статусов
     loadQueue(); // Загрузка очереди команд
     startStatusWS(); // Запуск WebSocket для обновления статусов
@@ -120,7 +121,7 @@ document.addEventListener('DOMContentLoaded', () => {
      * Запуск WebSocket для получения обновлений статусов
      */
     function startStatusWS() {
-        wsStatus = new WebSocket('ws://' + location.host + '/ws/status');
+        wsStatus = new WebSocket('ws://localhost:8080/api/statuses/ws/status');
         wsStatus.onmessage = event => {
             const state = JSON.parse(event.data);
             updateStatus(state); // Обновление интерфейса новым статусом
@@ -139,7 +140,7 @@ document.addEventListener('DOMContentLoaded', () => {
      * Загрузка текущих статусов через REST API
      */
     function fetchStatuses() {
-        fetch('/api/statuses')
+        fetch('http://localhost:8080/api/statuses')
             .then(res => res.json())
             .then(state => updateStatus(state)); // Обновление интерфейса полученными статусами
     }
@@ -215,7 +216,7 @@ document.addEventListener('DOMContentLoaded', () => {
         })
             .then(res => res.json())
             .then(() => {
-                appendEventLog(`Команда #${cmd.N} добавлена в очередь`); // Логирование добавления команды
+                appendEventLog(`Команда #${cmd.n} добавлена в очередь`); // Логирование добавления команды
                 loadQueue(); // Обновление очереди команд
             });
     }
@@ -231,12 +232,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 data.forEach(item => {
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
-                        <td>${item.N}</td>
+                        <td>${item.n}</td>
                         <td>${item.device}</td>
                         <td>${JSON.stringify(item.params)}</td>
                         <td>${item.status}</td>
                         <td>${item.timestamp}</td>
-                        <td><button class="delCmd" data-id="${item.N}">Удалить</button></td>
+                        <td><button class="delCmd" data-id="${item.n}">Удалить</button></td>
                     `;
                     queueTableBody.appendChild(tr); // Добавление строки в таблицу
                 });

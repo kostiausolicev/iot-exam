@@ -9,16 +9,16 @@ class SmartLamp(override var id: Int) : Device {
     private var l3: Boolean = false // Желтая - обслуживание
     private var l4: Boolean = false // Зеленая - ожидание
 
-    fun setLight(lights: List<Boolean>): List<Boolean> {
-        lights.forEachIndexed { i, light ->
-            when (i) {
-                0 -> l1 = light
-                1 -> l2 = light
-                2 -> l3 = light
-                3 -> l4 = light
+    fun setLight(lights: List<String>) {
+        lights.forEach { light ->
+            when (light) {
+                "L1" -> { l1 = true; l2 = false; l3 = false; l4 = false }
+                "L2" -> { l1 = false; l2 = true; l3 = false; l4 = false }
+                "L3" -> { l1 = false; l2 = false; l3 = true; l4 = false }
+                "L4" -> { l1 = false; l2 = false; l3 = false; l4 = true }
+                else -> throw IllegalArgumentException("Unknown light: $light")
             }
         }
-        return lights
     }
 
     fun getLights(): List<Boolean> =

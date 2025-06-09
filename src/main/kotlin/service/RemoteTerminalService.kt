@@ -2,8 +2,12 @@ package ru.guap.service
 
 import com.mongodb.client.model.Filters
 import com.mongodb.client.model.Sorts
+import com.mongodb.client.model.Updates
 import com.mongodb.kotlin.client.coroutine.MongoDatabase
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
 import ru.guap.config.Collections
 import ru.guap.dto.CommandDto
@@ -23,18 +27,48 @@ class RemoteTerminalService(
     )
 
     suspend fun executeCommand() {
-        getCommands().forEach { command ->
+        getPendingCommands().forEach { command ->
             val device = devices.find { it.deviceName() == command.device }
                 ?: throw IllegalArgumentException("Device with name ${command.device} not found")
             when (device) {
                 is SmartLamp -> {
                     val lights = command.params["lights"] as List<String>
-                    device.setLight(lights)
+                    device.setLight(lights) {
+                        // Обновляем статус команды в базе данных
+                        mongoDatabase.getCollection<CommandDto>(Collections.COMMANDS.collectionName)
+                            .updateOne(Filters.eq("n", command.N), Updates.set("status", "Running"))
+                    }
                 }
             }
             // Обновляем статус команды в базе данных
-            mongoDatabase.getCollection(Collections.COMMANDS.collectionName, CommandDto::class.java)
-                .updateOne(Filters.eq("N", command.N), Filters.eq("status", "Executed"))
+            mongoDatabase.getCollection<CommandDto>(Collections.COMMANDS.collectionName)
+                .updateOne(Filters.eq("n", command.N), Updates.set("status", "Executed"))
+        }
+    }
+
+    suspend fun getStatusFlow(): Flow<StatusDTO> = flow {
+        while (true) {
+            val robots = devices.filterIsInstance<Robot>().map { robot ->
+                RobotStatusDTO(
+                    name = robot.deviceName(),
+                    X = robot.X,
+                    Y = robot.Y,
+                    T = robot.T,
+                    s = if (robot.isConnected()) 1 else 0
+                )
+            }
+            val lamps = devices.filterIsInstance<SmartLamp>().firstOrNull()?.getLights()
+                ?.map { if (it) 1 else 0 }
+                ?.let { lights ->
+                    LampsDTO(
+                        L1 = lights.getOrNull(0) ?: 0,
+                        L2 = lights.getOrNull(1) ?: 0,
+                        L3 = lights.getOrNull(2) ?: 0,
+                        L4 = lights.getOrNull(3) ?: 0
+                    )
+                }
+            emit(StatusDTO(robots, lamps))
+            delay(5000) // Обновлять каждые 5 секунд
         }
     }
 
@@ -103,6 +137,13 @@ class RemoteTerminalService(
     suspend fun getCommands(): List<CommandDto> {
         return mongoDatabase.getCollection(Collections.COMMANDS.collectionName, CommandDto::class.java)
             .find()
+            .toList()
+    }
+
+    private suspend fun getPendingCommands(): List<CommandDto> {
+        return mongoDatabase.getCollection(Collections.COMMANDS.collectionName, CommandDto::class.java)
+            .find()
+            .filter(Filters.eq("status", "Pending"))
             .toList()
     }
 }

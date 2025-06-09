@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 val koin_version: String by project
 val kotlin_version: String by project
 val logback_version: String by project
@@ -45,3 +47,13 @@ dependencies {
     testImplementation("io.ktor:ktor-server-test-host")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
 }
+
+kotlin {
+    jvmToolchain(17)
+}
+
+//tasks.withType(KotlinCompile::class).all {
+//    kotlinOptions {
+//        jvmTarget = "17"
+//    }
+//}

@@ -1,5 +1,6 @@
 package ru.guap.thing.smart.lamp
 
+import kotlinx.coroutines.delay
 import ru.guap.thing.Device
 
 class SmartLamp(override var id: Int) : Device {
@@ -9,7 +10,7 @@ class SmartLamp(override var id: Int) : Device {
     private var l3: Boolean = false // Желтая - обслуживание
     private var l4: Boolean = false // Зеленая - ожидание
 
-    fun setLight(lights: List<String>) {
+    suspend fun setLight(lights: List<String>, callback: (suspend () -> Unit)? = null) {
         lights.forEach { light ->
             when (light) {
                 "L1" -> { l1 = true; l2 = false; l3 = false; l4 = false }
@@ -19,6 +20,8 @@ class SmartLamp(override var id: Int) : Device {
                 else -> throw IllegalArgumentException("Unknown light: $light")
             }
         }
+        delay(10_000)
+        callback?.invoke()
     }
 
     fun getLights(): List<Boolean> =

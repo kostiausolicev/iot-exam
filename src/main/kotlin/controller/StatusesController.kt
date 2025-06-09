@@ -16,8 +16,9 @@ fun Application.statusesController() {
     routing {
         route("/api/statuses") {
             webSocket("/ws/status") {
-                val status = remoteTerminalService.getStatus()
-                send(Frame.Text(Json.encodeToString(status)))
+                remoteTerminalService.getStatusFlow().collect { status ->
+                    send(Frame.Text(Json.encodeToString(status)))
+                }
             }
             get {
                 val status = remoteTerminalService.getStatus()

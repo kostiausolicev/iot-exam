@@ -71,9 +71,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Предполагается, что данные имеют формат { m1: { warn_min, warn_max, crit_min, crit_max }, ... }
                 params.forEach(param => {
                     const warnMin = data[param].warn_min
-                    const warnMax = data[param].warn_min
+                    const warnMax = data[param].warn_max
                     const critMin = data[param].crit_min
-                    const critMax = data[param].crit_min
+                    const critMax = data[param].crit_max
                     document.getElementById(`warn_${param}_min`).value = warnMin;
                     document.getElementById(`warn_${param}_max`).value = warnMax;
                     document.getElementById(`crit_${param}_min`).value = critMin;
@@ -93,11 +93,15 @@ document.addEventListener('DOMContentLoaded', () => {
             const critMin = document.getElementById(`crit_${param}_min`).value;
             const critMax = document.getElementById(`crit_${param}_max`).value;
             payload[param] = {
-                warning: { min: warnMin, max: warnMax },
-                critical: { min: critMin, max: critMax }
+                warn_min: warnMin,
+                warn_max: warnMax,
+                crit_min: critMin,
+                crit_max: critMax
+                // warning: { min: warnMin, max: warnMax },
+                // critical: { min: critMin, max: critMax }
             };
         });
-        fetch('/api/thresholds', {
+        fetch('http://localhost:8080/api/thresholds', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)

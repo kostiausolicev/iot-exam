@@ -2,6 +2,7 @@ package ru.guap.controller
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
+import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
@@ -10,6 +11,7 @@ import io.ktor.server.websocket.webSocket
 import io.ktor.websocket.Frame
 import kotlinx.serialization.json.Json
 import org.koin.ktor.ext.inject
+import ru.guap.dto.ThresholdsDto
 import ru.guap.service.MonitorService
 import java.time.LocalDateTime
 
@@ -37,8 +39,9 @@ fun Application.dataController() {
         }
 
         post("/api/thresholds") {
-            val thresholds = monitorService.getThresholds() ?: call.respond(HttpStatusCode.OK)
-            call.respond(thresholds)
+            val thresholds = call.receive<ThresholdsDto>()
+            monitorService.saveThresholds(thresholds)
+            call.respond(HttpStatusCode.OK)
         }
     }
 }

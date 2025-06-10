@@ -34,12 +34,18 @@ class MonitorService(
             .deleteMany(Filters.lte("timestamp", LocalDateTime.now()))
     }
 
-    suspend fun getThresholds(): ThresholdsDto? {
+    fun getThresholds(): ThresholdsDto? {
         return devices.filterIsInstance<GrabRobot>().map {
             it.getThresholds()
         }.firstOrNull() ?: devices.filterIsInstance<VacuumRobot>().map {
             it.getThresholds()
         }.firstOrNull()
+    }
+
+    fun saveThresholds(dto: ThresholdsDto) {
+        devices.filterIsInstance<Robot>().forEach { robot ->
+            robot.saveThresholds(dto)
+        }
     }
 
     fun getLogsFlow() = flow {

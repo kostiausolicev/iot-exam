@@ -52,6 +52,105 @@ abstract class Robot : Device {
         this.grab = grab
     }
 
+    fun saveThresholds(dto: ThresholdsDto) {
+        servo1.apply {
+            maxM = dto.m1.critMax
+            minM = dto.m1.critMin
+            warnMinM = dto.m1.warnMin
+            warnMaxM = dto.m1.warnMax
+
+            maxTemperature = dto.t1.critMax
+            minTemperature = dto.t1.critMin
+            warnMaxTemperature = dto.t1.warnMax
+            warnMinTemperature = dto.t1.warnMin
+
+            maxL = dto.l1.critMax
+            minL = dto.l1.critMin
+            warnMaxL = dto.l1.warnMax
+            warnMinL = dto.l1.warnMin
+        }
+        servo2.apply {
+            maxM = dto.m2.critMax
+            minM = dto.m2.critMin
+            warnMinM = dto.m2.warnMin
+            warnMaxM = dto.m2.warnMax
+
+            maxTemperature = dto.t2.critMax
+            minTemperature = dto.t2.critMin
+            warnMaxTemperature = dto.t2.warnMax
+            warnMinTemperature = dto.t2.warnMin
+
+            maxL = dto.l2.critMax
+            minL = dto.l2.critMin
+            warnMaxL = dto.l2.warnMax
+            warnMinL = dto.l2.warnMin
+        }
+        servo3.apply {
+            maxM = dto.m3.critMax
+            minM = dto.m3.critMin
+            warnMinM = dto.m3.warnMin
+            warnMaxM = dto.m3.warnMax
+
+            maxTemperature = dto.t3.critMax
+            minTemperature = dto.t3.critMin
+            warnMaxTemperature = dto.t3.warnMax
+            warnMinTemperature = dto.t3.warnMin
+
+            maxL = dto.l3.critMax
+            minL = dto.l3.critMin
+            warnMaxL = dto.l3.warnMax
+            warnMinL = dto.l3.warnMin
+        }
+        servo4.apply {
+            maxM = dto.m4.critMax
+            minM = dto.m4.critMin
+            warnMinM = dto.m4.warnMin
+            warnMaxM = dto.m4.warnMax
+
+            maxTemperature = dto.t4.critMax
+            minTemperature = dto.t4.critMin
+            warnMaxTemperature = dto.t4.warnMax
+            warnMinTemperature = dto.t4.warnMin
+
+            maxL = dto.l4.critMax
+            minL = dto.l4.critMin
+            warnMaxL = dto.l4.warnMax
+            warnMinL = dto.l4.warnMin
+        }
+        servo5.apply {
+            maxM = dto.m5.critMax
+            minM = dto.m5.critMin
+            warnMinM = dto.m5.warnMin
+            warnMaxM = dto.m5.warnMax
+
+            maxTemperature = dto.t5.critMax
+            minTemperature = dto.t5.critMin
+            warnMaxTemperature = dto.t5.warnMax
+            warnMinTemperature = dto.t5.warnMin
+
+            maxL = dto.l5.critMax
+            minL = dto.l5.critMin
+            warnMaxL = dto.l5.warnMax
+            warnMinL = dto.l5.warnMin
+        }
+        servo6?.apply {
+            maxM = dto.m6.critMax
+            minM = dto.m6.critMin
+            warnMinM = dto.m6.warnMin
+            warnMaxM = dto.m6.warnMax
+
+            maxTemperature = dto.t6.critMax
+            minTemperature = dto.t6.critMin
+            warnMaxTemperature = dto.t6.warnMax
+            warnMinTemperature = dto.t6.warnMin
+
+            maxL = dto.l6.critMax
+            minL = dto.l6.critMin
+            warnMaxL = dto.l6.warnMax
+            warnMinL = dto.l6.warnMin
+        }
+    }
+
     fun getThresholds(): ThresholdsDto = ThresholdsDto(
         m1 = Threshold(
             warnMin = servo1.warnMinM,

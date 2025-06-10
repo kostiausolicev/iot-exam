@@ -65,10 +65,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         // Отправка нового POI на сервер
         fetch('http://localhost:8080/api/poi', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, X, Y, T })
-        })
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, X, Y, T })
+            })
             .then(res => res.json())
             .then(() => fetch('http://localhost:8080/api/poi')) // Обновление списка POI
             .then(res => res.json())
@@ -165,43 +165,45 @@ document.addEventListener('DOMContentLoaded', () => {
             robotsStatusDiv.appendChild(card); // Добавление карточки в контейнер
         });
         // Обновление индикаторов ламп (красный для 1, зеленый для 0)
-        setLamp(indL1, state.lamps.L1);
-        setLamp(indL2, state.lamps.L2);
-        setLamp(indL3, state.lamps.L3);
-        setLamp(indL4, state.lamps.L4);
+        // Количество ламп точно 4, поэтому просто перебираем
+        setLamp(indL1, state.lamps.L1, 1);
+        setLamp(indL2, state.lamps.L2, 2);
+        setLamp(indL3, state.lamps.L3, 3);
+        setLamp(indL4, state.lamps.L4, 4);
+
     }
 
     /**
-     * Установка цвета индикатора лампы: красный = 1, зеленый = 0
-     * @param {HTMLElement} indicator - Элемент DOM для индикатора лампы
-     * @param {number} val - Состояние лампы (0 или 1)
+     * Обновляет цвет индикатора lampIndex:
+     *  - если val == 1 → зажигает свой цвет,
+     *  - иначе → переводит в серый (off).
+     * @param {HTMLElement} indicator — сам <span class="indicator" id="indL#">
+     * @param {number} val — 0 или 1
+     * @param {number} lampIndex — 1..4 (номер лампы)
      */
-    function setLamp(indicator, val) {
-        indicator.className = 'indicator ' + (val == 1 ? 'indicator-red' : 'indicator-green');
+    function setLamp(indicator, val, lampIndex) {
+        // Сначала убираем из индикатора все цветовые классы
+        indicator.className = 'indicator';
+
+        if (val == 1) {
+            // Включаем «свой» цвет в зависимости от lampIndex
+            switch (lampIndex) {
+                case 1:
+                    indicator.classList.add('lamp-red');
+                    break;
+                case 2:
+                    indicator.classList.add('lamp-yellow');
+                    break;
+                case 3:
+                    indicator.classList.add('lamp-green');
+                    break;
+                case 4:
+                    indicator.classList.add('lamp-blue');
+                    break;
+            }
+        }
+        // если val == 0, оставляем только 'indicator' (серый фон)
     }
-
-    // Обработчик для отправки ручной команды
-    sendCmdBtn.addEventListener('click', () => {
-        // Получение параметров команды из полей ввода
-        const deviceId = parseInt(document.getElementById('cmdDeviceId').value, 10);
-        const X = parseFloat(document.getElementById('cmdX').value);
-        const Y = parseFloat(document.getElementById('cmdY').value);
-        const T = parseFloat(document.getElementById('cmdT').value);
-        const G = parseInt(document.getElementById('cmdG').value, 10);
-        const V = parseInt(document.getElementById('cmdV').value, 10);
-
-        // Сбор состояний выбранных ламп
-        const lights = [];
-        if (document.getElementById('cmdL1').checked) lights.push('L1');
-        if (document.getElementById('cmdL2').checked) lights.push('L2');
-        if (document.getElementById('cmdL3').checked) lights.push('L3');
-        if (document.getElementById('cmdL4').checked) lights.push('L4');
-
-        if (!toggleSend.checked) return; // Проверка, включена ли отправка
-
-        // Отправка команды на сервер
-        sendCommand({ deviceId, X, Y, T, G, V, lights });
-    });
 
     /**
      * Отправка команды через REST API и обновление очереди
@@ -210,10 +212,10 @@ document.addEventListener('DOMContentLoaded', () => {
     function sendCommand(cmd) {
         console.log(JSON.stringify(cmd)); // Логирование команды для отладки
         fetch('http://localhost:8080/api/commands', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(cmd)
-        })
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(cmd)
+            })
             .then(res => res.json())
             .then(() => {
                 appendEventLog(`Команда #${cmd.n} добавлена в очередь`); // Логирование добавления команды

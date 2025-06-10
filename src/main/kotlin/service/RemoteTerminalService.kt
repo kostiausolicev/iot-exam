@@ -13,6 +13,7 @@ import ru.guap.config.Collections
 import ru.guap.dto.CommandDto
 import ru.guap.dto.DeviceDto
 import ru.guap.dto.LampsDTO
+import ru.guap.dto.LogDto
 import ru.guap.dto.RobotStatusDTO
 import ru.guap.dto.SendCommandDto
 import ru.guap.dto.StatusDTO
@@ -20,6 +21,7 @@ import ru.guap.thing.Device
 import ru.guap.thing.robot.GrabRobot
 import ru.guap.thing.robot.Robot
 import ru.guap.thing.smart.lamp.SmartLamp
+import java.time.LocalDateTime
 
 class RemoteTerminalService(
     private val mongoDatabase: MongoDatabase,
@@ -39,38 +41,51 @@ class RemoteTerminalService(
         for (command in getPendingCommands()) {
             val device = devices.find { it.deviceName() == command.device && !it.running }
                 ?: throw IllegalArgumentException("Device with name ${command.device} not found")
-            when (device) {
-                is Robot -> {
-                    val x = command.params["X"].toString().toIntOrNull()
-                    val y = command.params["Y"].toString().toIntOrNull()
-                    if (x != null || y != null) {
+            try {
+                when (device) {
+                    is Robot -> {
+                        val x = command.params["X"].toString().toIntOrNull()
+                        val y = command.params["Y"].toString().toIntOrNull()
+                        if (x != null || y != null) {
+                            setCommandStatus(command, "Running")
+                            device.moveTo(x, y) {
+                                setCommandStatus(command, "Executed")
+                            }
+                        }
+
+                        val t = command.params["T"].toString().toIntOrNull()
+                        if (t != null) {
+                            setCommandStatus(command, "Running")
+                            device.turn(t) {
+                                setCommandStatus(command, "Executed")
+                            }
+                        }
+
+                        val grag = if (device is GrabRobot) command.params["G"].toString().toIntOrNull()
+                        else command.params["V"].toString().toIntOrNull()
+
+                        if (grag != null) device.grab(grag == 1)
+                    }
+
+                    is SmartLamp -> {
                         setCommandStatus(command, "Running")
-                        device.moveTo(x, y) {
+                        val lights = command.params["lights"] as List<String>
+                        device.setLight(lights) {
                             setCommandStatus(command, "Executed")
                         }
                     }
 
-                    val t = command.params["T"].toString().toIntOrNull()
-                    if (t != null) {
-                        setCommandStatus(command, "Running")
-                        device.turn(t) {
-                            setCommandStatus(command, "Executed")
-                        }
-                    }
-
-                    val grag = if (device is GrabRobot) command.params["G"].toString().toIntOrNull()
-                    else command.params["V"].toString().toIntOrNull()
-
-                    if (grag != null) device.grab(grag == 1)
+                    else -> continue
                 }
-                is SmartLamp -> {
-                    setCommandStatus(command, "Running")
-                    val lights = command.params["lights"] as List<String>
-                    device.setLight(lights) {
-                        setCommandStatus(command, "Executed")
-                    }
-                }
-                else -> continue
+            } catch (cause: Exception) {
+                device.running = false
+                setCommandStatus(command, "Error")
+                mongoDatabase.getCollection<LogDto>(Collections.LOGS.collectionName)
+                    .insertOne(LogDto(
+                        level = System.Logger.Level.ERROR.name,
+                        timestamp = LocalDateTime.now(),
+                        message = cause.message,
+                    ))
             }
         }
     }

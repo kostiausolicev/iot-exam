@@ -18,7 +18,13 @@ abstract class Robot : Device {
     var Y: Int = 0
         protected set
     var T: Int = 0
-        protected set
+        protected set(value) {
+            servo1.temperature += 10
+            servo1.l += 10
+            servo1.angle = value
+            servo2.temperature -= 5
+            field = value
+        }
     var grab: Boolean = false
 
     private var status: Boolean = false

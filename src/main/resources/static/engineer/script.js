@@ -123,8 +123,10 @@ document.addEventListener('DOMContentLoaded', () => {
     toggleCollect.addEventListener('change', () => {
         if (toggleCollect.checked) {
             startDataWS(); // Запуск WebSocket при включении
+            startAlertsWS();
         } else {
             stopDataWS(); // Остановка WebSocket при выключении
+            stopAlertsWS();
         }
         fetch('/api/config', {
             method: 'POST',
@@ -174,7 +176,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('clearLog').addEventListener('click', () => {
         alertLogDiv.innerHTML = ''; // Очистка лога
-        fetch('/api/alerts/clear', { method: 'POST' }); // Очистка лога на сервере
+        fetch('http://localhost:8080/api/alerts/clear', { method: 'POST' }); // Очистка лога на сервере
     });
 
     /**
@@ -186,7 +188,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const payload = JSON.parse(event.data);
             console.log(payload)
             updateRawTable(payload.raw); // Обновление таблицы сырых данных
-            // updatePhysTable(payload.physical); // Обновление таблицы физических данных
+            updatePhysTable(payload.physical); // Обновление таблицы физических данных
         };
     }
 
@@ -201,11 +203,18 @@ document.addEventListener('DOMContentLoaded', () => {
      * Запуск WebSocket для получения алертов
      */
     function startAlertsWS() {
-        wsAlerts = new WebSocket('ws://' + location.host + '/ws/alerts');
+        wsAlerts = new WebSocket('ws://localhost:8080/api/alerts/ws/alerts');
         wsAlerts.onmessage = event => {
             const alert = JSON.parse(event.data);
             appendAlert(alert); // Добавление алерта в лог
         };
+    }
+
+    /**
+     * Остановка WebSocket для данных
+     */
+    function stopAlertsWS() {
+        if (wsAlerts) wsAlerts.close(); // Закрытие WebSocket, если он существует
     }
 
     /**
@@ -288,7 +297,8 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     function appendAlert(alert) {
         const div = document.createElement('div');
-        div.textContent = `${alert.timestamp} - ${alert.device}: ${alert.param}=${alert.value}, порог=${alert.threshold}`;
+        // div.textContent = `${alert.timestamp} - ${alert.device}: ${alert.param}=${alert.value}, порог=${alert.threshold}`;
+        div.textContent = `${alert.level}:${alert.timestamp} ${alert.message}`
         alertLogDiv.prepend(div); // Добавление записи в начало лога
     }
 

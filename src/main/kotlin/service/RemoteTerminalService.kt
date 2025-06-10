@@ -19,15 +19,16 @@ import ru.guap.dto.StatusDTO
 import ru.guap.thing.Device
 import ru.guap.thing.robot.GrabRobot
 import ru.guap.thing.robot.Robot
+import ru.guap.thing.robot.VacuumRobot
 import ru.guap.thing.smart.lamp.SmartLamp
 
 class RemoteTerminalService(
     private val mongoDatabase: MongoDatabase
 ) {
     private val devices: MutableList<out Device> = mutableListOf(
-//        SmartLamp(id = 1),
+        SmartLamp(id = 1),
         GrabRobot(id = 2),
-//        VacuumRobot(id = 3),
+        VacuumRobot(id = 3),
     )
 
     fun getDevices(): List<DeviceDto> {

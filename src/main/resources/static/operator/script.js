@@ -34,7 +34,6 @@ document.addEventListener('DOMContentLoaded', () => {
         .then(res => res.json())
         .then(data => renderPoi(data)); // Загрузка и отображение списка POI
 
-    console.log("123")
     fetchStatuses(); // Загрузка начальных статусов
     loadQueue(); // Загрузка очереди команд
     startStatusWS(); // Запуск WebSocket для обновления статусов
@@ -173,7 +172,6 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
             // Установка цвета индикатора: синий для s==1, зеленый для других
             const ind = document.createElement('span');
-            console.log(r.s)
             ind.className = 'indicator ' + (r.s === 1 ? 'indicator-blue' : 'indicator-green');
             card.appendChild(ind);
             robotsStatusDiv.appendChild(card); // Добавление карточки в контейнер

@@ -181,11 +181,12 @@ document.addEventListener('DOMContentLoaded', () => {
      * Запуск WebSocket для получения сырых и физических данных
      */
     function startDataWS() {
-        wsData = new WebSocket('ws://' + location.host + '/ws/data');
+        wsData = new WebSocket('ws://localhost:8080/api/monitor/ws/data');
         wsData.onmessage = event => {
             const payload = JSON.parse(event.data);
+            console.log(payload)
             updateRawTable(payload.raw); // Обновление таблицы сырых данных
-            updatePhysTable(payload.physical); // Обновление таблицы физических данных
+            // updatePhysTable(payload.physical); // Обновление таблицы физических данных
         };
     }
 

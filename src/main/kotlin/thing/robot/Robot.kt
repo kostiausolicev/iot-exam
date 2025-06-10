@@ -1,11 +1,7 @@
 package ru.guap.thing.robot
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.CoroutineStart
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import ru.guap.dto.DataDto
 import ru.guap.thing.Device
 import ru.guap.thing.robot.component.Servo
 
@@ -64,9 +60,31 @@ abstract class Robot : Device {
         callback?.invoke()
     }
 
-    fun toDto() {
-
-    }
+    override fun toDataDto(n: Int): DataDto = DataDto(
+        deviceName = deviceName(),
+        n = n,
+        m1 = servo1.m,
+        m2 = servo2.m,
+        m3 = servo3.m,
+        m4 = servo4.m,
+        m5 = servo5.m,
+        m6 = servo6?.m,
+        t1 = servo1.temperature,
+        t2 = servo2.temperature,
+        t3 = servo3.temperature,
+        t4 = servo4.temperature,
+        t5 = servo5.temperature,
+        t6 = servo6?.temperature,
+        l1 = servo1.l,
+        l2 = servo2.l,
+        l3 = servo3.l,
+        l4 = servo4.l,
+        l5 = servo5.l,
+        l6 = servo6?.l,
+        x = X,
+        y = Y,
+        t = T
+    )
 
     override fun connect() {
         this.status = true

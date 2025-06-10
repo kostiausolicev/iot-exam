@@ -13,6 +13,18 @@ class Servo {
     var maxL = 100
     var minL = 10
 
+    var warnMaxTemperature: Int = 65
+    var warnMinTemperature: Int = 10
+
+    var warnMaxAngle = 90
+    var warnMinAngle = -90
+
+    var warnMaxM = 100
+    var warnMinM = 10
+
+    var warnMaxL = 100
+    var warnMinL = 10
+
     var temperature: Int = 20
         set(value) =
             if (value in minTemperature..maxTemperature) field = value

@@ -9,16 +9,24 @@ import kotlinx.coroutines.flow.flow
 import ru.guap.config.Collections
 import ru.guap.dto.CommandDto
 import ru.guap.dto.DataDto
-import ru.guap.dto.LogDto
 import ru.guap.dto.DataPhysDto
 import ru.guap.dto.FullDataDto
+import ru.guap.dto.LogDto
+import ru.guap.dto.ThresholdsDto
 import ru.guap.thing.Device
+import ru.guap.thing.robot.GrabRobot
+import ru.guap.thing.robot.Robot
+import ru.guap.thing.robot.VacuumRobot
 import java.time.LocalDateTime
 
 class MonitorService(
     private val mongoDatabase: MongoDatabase,
     private val devices: MutableList<out Device>
 ) {
+    companion object {
+        const val UPDATE_INTERVAL = 5_000L
+    }
+
     private var lastLog: LogDto? = null
 
     suspend fun clearLogs() {
@@ -26,9 +34,13 @@ class MonitorService(
             .deleteMany(Filters.lte("timestamp", LocalDateTime.now()))
     }
 
-//    suspend fun getData(startAt: LocalDateTime, endAt: LocalDateTime, type: String): DataDto {
-//
-//    }
+    suspend fun getThresholds(): ThresholdsDto? {
+        return devices.filterIsInstance<GrabRobot>().map {
+            it.getThresholds()
+        }.firstOrNull() ?: devices.filterIsInstance<VacuumRobot>().map {
+            it.getThresholds()
+        }.firstOrNull()
+    }
 
     fun getLogsFlow() = flow {
         while (true) {
@@ -52,7 +64,7 @@ class MonitorService(
                 data,
                 dataPhys,
             ))
-            delay(2000)
+            delay(UPDATE_INTERVAL)
         }
     }
 
@@ -91,6 +103,9 @@ class MonitorService(
             .firstOrNull()
             ?.N ?: -1
 
-        return device.toDataPsycDto(lastCommand)
+        val data = device.toDataPsycDto(lastCommand)
+        mongoDatabase.getCollection<DataPhysDto>(Collections.METRIC.collectionName)
+            .insertOne(data)
+        return data
     }
 }

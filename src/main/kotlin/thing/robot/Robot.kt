@@ -3,6 +3,8 @@ package ru.guap.thing.robot
 import kotlinx.coroutines.delay
 import ru.guap.dto.DataDto
 import ru.guap.dto.DataPhysDto
+import ru.guap.dto.Threshold
+import ru.guap.dto.ThresholdsDto
 import ru.guap.thing.Device
 import ru.guap.thing.robot.component.Servo
 
@@ -49,6 +51,117 @@ abstract class Robot : Device {
     fun grab(grab: Boolean) {
         this.grab = grab
     }
+
+    fun getThresholds(): ThresholdsDto = ThresholdsDto(
+        m1 = Threshold(
+            warnMin = servo1.warnMinM,
+            warnMax = servo1.warnMaxM,
+            critMin = servo1.minM,
+            critMax = servo1.maxM
+        ),
+        m2 = Threshold(
+            warnMin = servo2.warnMinM,
+            warnMax = servo2.warnMaxM,
+            critMin = servo2.minM,
+            critMax = servo2.maxM
+        ),
+        m3 = Threshold(
+            warnMin = servo3.warnMinM,
+            warnMax = servo3.warnMaxM,
+            critMin = servo3.minM,
+            critMax = servo3.maxM
+        ),
+        m4 = Threshold(
+            warnMin = servo4.warnMinM,
+            warnMax = servo4.warnMaxM,
+            critMin = servo4.minM,
+            critMax = servo4.maxM
+        ),
+        m5 = Threshold(
+            warnMin = servo5.warnMinM,
+            warnMax = servo5.warnMaxM,
+            critMin = servo5.minM,
+            critMax = servo5.maxM
+        ),
+        m6 = Threshold(
+            warnMin = servo6?.warnMinM ?: 0,
+            warnMax = servo6?.warnMaxM ?: 0,
+            critMin = servo6?.minM ?: 0,
+            critMax = servo6?.maxM ?: 0
+        ),
+        t1 = Threshold(
+            warnMin = servo1.warnMinTemperature,
+            warnMax = servo1.warnMaxTemperature,
+            critMin = servo1.minTemperature,
+            critMax = servo1.maxTemperature
+        ),
+        t2 = Threshold(
+            warnMin = servo2.warnMinTemperature,
+            warnMax = servo2.warnMaxTemperature,
+            critMin = servo2.minTemperature,
+            critMax = servo2.maxTemperature
+        ),
+        t3 = Threshold(
+            warnMin = servo3.warnMinTemperature,
+            warnMax = servo3.warnMaxTemperature,
+            critMin = servo3.minTemperature,
+            critMax = servo3.maxTemperature
+        ),
+        t4 = Threshold(
+            warnMin = servo4.warnMinTemperature,
+            warnMax = servo4.warnMaxTemperature,
+            critMin = servo4.minTemperature,
+            critMax = servo4.maxTemperature
+        ),
+        t5 = Threshold(
+            warnMin = servo5.warnMinTemperature,
+            warnMax = servo5.warnMaxTemperature,
+            critMin = servo5.minTemperature,
+            critMax = servo5.maxTemperature
+        ),
+        t6 = Threshold(
+            warnMin = servo6?.warnMinTemperature ?: 0,
+            warnMax = servo6?.warnMaxTemperature ?: 0,
+            critMin = servo6?.minTemperature ?: 0,
+            critMax = servo6?.maxTemperature ?: 0
+        ),
+        l1 = Threshold(
+            warnMin = servo1.warnMinL,
+            warnMax = servo1.warnMaxL,
+            critMin = servo1.minL,
+            critMax = servo1.maxL
+        ),
+        l2 = Threshold(
+            warnMin = servo2.warnMinL,
+            warnMax = servo2.warnMaxL,
+            critMin = servo2.minL,
+            critMax = servo2.maxL
+        ),
+        l3 = Threshold(
+            warnMin = servo3.warnMinL,
+            warnMax = servo3.warnMaxL,
+            critMin = servo3.minL,
+            critMax = servo3.maxL
+        ),
+        l4 = Threshold(
+            warnMin = servo4.warnMinL,
+            warnMax = servo4.warnMaxL,
+            critMin = servo4.minL,
+            critMax = servo4.maxL
+        ),
+        l5 = Threshold(
+            warnMin = servo5.warnMinL,
+            warnMax = servo5.warnMaxL,
+            critMin = servo5.minL,
+            critMax = servo5.maxL
+        ),
+        l6 = Threshold(
+            warnMin = servo6?.warnMinL ?: 0,
+            warnMax = servo6?.warnMaxL ?: 0,
+            critMin = servo6?.minL ?: 0,
+            critMax = servo6?.maxL ?: 0
+        )
+    )
 
     suspend fun moveTo(x: Int?, y: Int?, callback: (suspend () -> Unit)? = null) {
         running = true

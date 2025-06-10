@@ -17,7 +17,6 @@ document.addEventListener('DOMContentLoaded', () => {
         'm1', 'm2', 'm3', 'm4', 'm5', 'm6',
         't1', 't2', 't3', 't4', 't5', 't6',
         'l1', 'l2', 'l3', 'l4', 'l5', 'l6',
-        'X', 'Y', 'T', 'G', 'V'
     ];
 
     /**
@@ -66,21 +65,19 @@ document.addEventListener('DOMContentLoaded', () => {
      * Загрузка сохраненных порогов с сервера и заполнение полей
      */
     function loadThresholds() {
-        fetch('/api/thresholds')
+        fetch('http://localhost:8080/api/thresholds')
             .then(res => res.json())
             .then(data => {
                 // Предполагается, что данные имеют формат { m1: { warn_min, warn_max, crit_min, crit_max }, ... }
                 params.forEach(param => {
-                    const warn = data[param] ? data[param].warning : null;
-                    const crit = data[param] ? data[param].critical : null;
-                    if (warn) {
-                        document.getElementById(`warn_${param}_min`).value = warn.min;
-                        document.getElementById(`warn_${param}_max`).value = warn.max;
-                    }
-                    if (crit) {
-                        document.getElementById(`crit_${param}_min`).value = crit.min;
-                        document.getElementById(`crit_${param}_max`).value = crit.max;
-                    }
+                    const warnMin = data[param].warn_min
+                    const warnMax = data[param].warn_min
+                    const critMin = data[param].crit_min
+                    const critMax = data[param].crit_min
+                    document.getElementById(`warn_${param}_min`).value = warnMin;
+                    document.getElementById(`warn_${param}_max`).value = warnMax;
+                    document.getElementById(`crit_${param}_min`).value = critMin;
+                    document.getElementById(`crit_${param}_max`).value = critMax;
                 });
             });
     }
@@ -118,6 +115,11 @@ document.addEventListener('DOMContentLoaded', () => {
             startAlertsWS(); // Запуск WebSocket для алертов
         });
     loadThresholds(); // Загрузка порогов
+
+    if (toggleCollect.checked) {
+        startDataWS(); // Запуск WebSocket при включении
+        startAlertsWS();
+    }
 
     // Обработчики событий для переключателей и поля частоты
     toggleCollect.addEventListener('change', () => {
@@ -303,7 +305,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const from = document.getElementById('fromTime').value;
         const to = document.getElementById('toTime').value;
         const paramsSelected = Array.from(document.querySelectorAll('.chartParam:checked')).map(cb => cb.value);
-        fetch(`/api/data?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}¶ms=${paramsSelected.join(',')}`)
+        fetch(`http://localhost:8080/api/data?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&ms=${paramsSelected.join(',')}`)
             .then(res => res.json())
             .then(data => {
                 const ctx = document.getElementById('dataChart').getContext('2d');

@@ -1,7 +1,10 @@
 package ru.guap.thing.robot
 
+import kotlinx.coroutines.delay
 import ru.guap.thing.Device
 import ru.guap.thing.robot.component.Servo
+import kotlin.math.pow
+import kotlin.math.sqrt
 
 abstract class Robot : Device {
     private val servo1: Servo
@@ -17,6 +20,7 @@ abstract class Robot : Device {
         protected set
     var T: Int = 0
         protected set
+    var grab: Boolean = false
 
     private var status: Boolean = false
 
@@ -36,9 +40,26 @@ abstract class Robot : Device {
         this.servo6 = servo6
     }
 
-    abstract fun moveTo(x: Int, y: Int, z: Int)
-    abstract fun grab()
-    abstract fun turn(angle: Int)
+    fun grab(grab: Boolean) {
+        this.grab = grab
+    }
+
+    suspend fun moveTo(x: Int?, y: Int?, callback: (suspend () -> Unit)? = null) {
+        running = true
+        delay(10_000)
+        X = x ?: X
+        Y = y ?: Y
+        running = false
+        callback?.invoke()
+    }
+
+    fun turn(angle: Int) {
+
+    }
+
+    fun toDto() {
+
+    }
 
     override fun connect() {
         this.status = true

@@ -8,7 +8,9 @@ import io.ktor.server.response.respondText
 import io.ktor.server.websocket.WebSockets
 import io.ktor.server.websocket.pingPeriod
 import io.ktor.server.websocket.timeout
+import ru.guap.controller.alertController
 import ru.guap.controller.commandController
+import ru.guap.controller.dataController
 import ru.guap.controller.deviceController
 import ru.guap.controller.poiController
 import ru.guap.controller.statusesController
@@ -33,4 +35,6 @@ fun Application.configureRouting() {
     statusesController()
     poiController()
     deviceController()
+    dataController()
+    alertController()
 }

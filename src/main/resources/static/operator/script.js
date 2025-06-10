@@ -173,7 +173,8 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
             // Установка цвета индикатора: синий для s==1, зеленый для других
             const ind = document.createElement('span');
-            ind.className = 'indicator ' + (r.s == 1 ? 'indicator-blue' : 'indicator-green');
+            console.log(r.s)
+            ind.className = 'indicator ' + (r.s === 1 ? 'indicator-blue' : 'indicator-green');
             card.appendChild(ind);
             robotsStatusDiv.appendChild(card); // Добавление карточки в контейнер
         });

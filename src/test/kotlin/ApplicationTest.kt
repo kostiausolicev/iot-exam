@@ -13,8 +13,8 @@ class ApplicationTest {
         application {
             module()
         }
-        client.get("/").apply {
-            assertEquals(HttpStatusCode.OK, status)
+        client.get("/api/statuses").apply {
+            assertEquals(HttpStatusCode.OK, status, "Ожидали 200 OK на GET /api/statuses")
         }
     }
 

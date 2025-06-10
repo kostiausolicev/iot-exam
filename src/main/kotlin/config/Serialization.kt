@@ -30,27 +30,33 @@ import kotlinx.serialization.json.intOrNull
 import org.bson.BsonDateTime
 import org.bson.codecs.kotlinx.BsonDecoder
 import org.bson.codecs.kotlinx.BsonEncoder
-import java.sql.Timestamp
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneOffset
-import kotlin.time.ExperimentalTime
 
 object LocalDateSerializer : KSerializer<LocalDateTime> {
-    override val descriptor = PrimitiveSerialDescriptor("LocalDate", PrimitiveKind.STRING)
+    override val descriptor = PrimitiveSerialDescriptor("LocalDateTime", PrimitiveKind.STRING)
+
     @OptIn(ExperimentalSerializationApi::class)
     override fun serialize(encoder: Encoder, value: LocalDateTime) {
-        when(encoder) {
-            is BsonEncoder -> encoder.encodeBsonValue(BsonDateTime(value.toEpochSecond(ZoneOffset.UTC)))
+        when (encoder) {
+            is BsonEncoder -> {
+                // Конвертируем LocalDateTime в Instant (в UTC) и берем миллисекунды
+                val instant = value.toInstant(ZoneOffset.UTC)
+                encoder.encodeBsonValue(BsonDateTime(instant.toEpochMilli()))
+            }
             else -> encoder.encodeString(value.toString())
         }
     }
-    @OptIn(ExperimentalTime::class)
+
+    @OptIn(ExperimentalSerializationApi::class)
     override fun deserialize(decoder: Decoder): LocalDateTime {
-        return when(decoder) {
-            is BsonDecoder -> Timestamp.from(
-                Instant.ofEpochMilli(decoder.decodeBsonValue().asDateTime().value)
-            ).toLocalDateTime()
+        return when (decoder) {
+            is BsonDecoder -> {
+                // Получаем миллисекунды из BsonDateTime и конвертируем в LocalDateTime
+                val millis = decoder.decodeBsonValue().asDateTime().value
+                Instant.ofEpochMilli(millis).atZone(ZoneOffset.UTC).toLocalDateTime()
+            }
             else -> LocalDateTime.parse(decoder.decodeString())
         }
     }

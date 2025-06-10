@@ -10,6 +10,8 @@ import ru.guap.config.Collections
 import ru.guap.dto.CommandDto
 import ru.guap.dto.DataDto
 import ru.guap.dto.LogDto
+import ru.guap.dto.DataPhysDto
+import ru.guap.dto.FullDataDto
 import ru.guap.thing.Device
 import java.time.LocalDateTime
 
@@ -23,6 +25,10 @@ class MonitorService(
         mongoDatabase.getCollection<LogDto>(Collections.LOGS.collectionName)
             .deleteMany(Filters.lte("timestamp", LocalDateTime.now()))
     }
+
+//    suspend fun getData(startAt: LocalDateTime, endAt: LocalDateTime, type: String): DataDto {
+//
+//    }
 
     fun getLogsFlow() = flow {
         while (true) {
@@ -39,7 +45,13 @@ class MonitorService(
             val data = devices.map { device ->
                 getDate(device)
             }
-            emit(data)
+            val dataPhys = devices.map { device ->
+                getPhysData(device)
+            }
+            emit(FullDataDto(
+                data,
+                dataPhys,
+            ))
             delay(2000)
         }
     }
@@ -65,5 +77,20 @@ class MonitorService(
             ?.N ?: -1
 
         return device.toDataDto(lastCommand)
+    }
+
+    private suspend fun getPhysData(device: Device): DataPhysDto {
+        val lastCommand = mongoDatabase.getCollection<CommandDto>(Collections.COMMANDS.collectionName)
+            .find(
+                Filters.and(
+                    Filters.eq("deviceId", device.id),
+                    Filters.eq("status", "Executed")
+                )
+            ).sort(Sorts.descending("timestamp"))
+            .limit(1)
+            .firstOrNull()
+            ?.N ?: -1
+
+        return device.toDataPsycDto(lastCommand)
     }
 }

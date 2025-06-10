@@ -2,6 +2,7 @@ package ru.guap.thing.smart.lamp
 
 import kotlinx.coroutines.delay
 import ru.guap.dto.DataDto
+import ru.guap.dto.DataPhysDto
 import ru.guap.thing.Device
 
 class SmartLamp(override var id: Int) : Device() {
@@ -42,6 +43,11 @@ class SmartLamp(override var id: Int) : Device() {
 
     override fun deviceName(): String = "SmartLamp"
     override fun toDataDto(n: Int): DataDto = DataDto(
+        deviceName = deviceName(),
+        n = n
+    )
+
+    override fun toDataPsycDto(n: Int): DataPhysDto = DataPhysDto(
         deviceName = deviceName(),
         n = n
     )

@@ -250,37 +250,31 @@ document.addEventListener('DOMContentLoaded', () => {
         physTableBody.innerHTML = ''; // Очистка таблицы
         data.forEach(item => {
             const tr = document.createElement('tr');
-            // Функция для создания ячейки с учетом статуса
-            function td(val, status) {
-                if (status === 'warning') return `<td class="highlight-warning">${val}</td>`;
-                if (status === 'critical') return `<td class="highlight-critical">${val}</td>`;
-                return `<td>${val}</td>`;
-            }
             tr.innerHTML = `
                 <td>${item.device}</td>
-                ${td(item.theta1, item.status_theta1)}
-                ${td(item.theta2, item.status_theta2)}
-                ${td(item.theta3, item.status_theta3)}
-                ${td(item.theta4, item.status_theta4)}
-                ${td(item.theta5, item.status_theta5)}
-                ${td(item.theta6, item.status_theta6)}
-                ${td(item.T1, item.status_T1)}
-                ${td(item.T2, item.status_T2)}
-                ${td(item.T3, item.status_T3)}
-                ${td(item.T4, item.status_T4)}
-                ${td(item.T5, item.status_T5)}
-                ${td(item.T6, item.status_T6)}
-                ${td(item.L1, item.status_L1)}
-                ${td(item.L2, item.status_L2)}
-                ${td(item.L3, item.status_L3)}
-                ${td(item.L4, item.status_L4)}
-                ${td(item.L5, item.status_L5)}
-                ${td(item.L6, item.status_L6)}
-                ${td(item.X, item.status_X)}
-                ${td(item.Y, item.status_Y)}
-                ${td(item.Tpos, item.status_Tpos)}
-                ${td(item.G, item.status_G)}
-                ${td(item.V, item.status_V)}
+                <td>${item.theta1}</td>
+                <td>${item.theta2}</td>
+                <td>${item.theta3}</td>
+                <td>${item.theta4}</td>
+                <td>${item.theta5}</td>
+                <td>${item.theta6}</td>
+                <td>${item.T1}</td>
+                <td>${item.T2}</td>
+                <td>${item.T3}</td>
+                <td>${item.T4}</td>
+                <td>${item.T5}</td>
+                <td>${item.T6}</td>
+                <td>${item.L1}</td>
+                <td>${item.L2}</td>
+                <td>${item.L3}</td>
+                <td>${item.L4}</td>
+                <td>${item.L5}</td>
+                <td>${item.L6}</td>
+                <td>${item.X}</td>
+                <td>${item.Y}</td>
+                <td>${item.Tpos}</td>
+                <td>${item.G}</td>
+                <td>${item.V}</td>
                 <td>${item.code}</td>
                 <td>${item.p}</td>
                 <td>${item.b1}</td>

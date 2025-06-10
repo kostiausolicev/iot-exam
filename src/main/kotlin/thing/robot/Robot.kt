@@ -2,6 +2,7 @@ package ru.guap.thing.robot
 
 import kotlinx.coroutines.delay
 import ru.guap.dto.DataDto
+import ru.guap.dto.DataPhysDto
 import ru.guap.thing.Device
 import ru.guap.thing.robot.component.Servo
 
@@ -65,6 +66,32 @@ abstract class Robot : Device {
         running = false
         callback?.invoke()
     }
+
+    override fun toDataPsycDto(n: Int): DataPhysDto = DataPhysDto(
+        deviceName = deviceName(),
+        n = n,
+        m1 = servo1.getPsycM(),
+        m2 = servo2.getPsycM(),
+        m3 = servo3.getPsycM(),
+        m4 = servo4.getPsycM(),
+        m5 = servo5.getPsycM(),
+        m6 = servo6?.getPsycM(),
+        t1 = servo1.getPsycTemperature(),
+        t2 = servo2.getPsycTemperature(),
+        t3 = servo3.getPsycTemperature(),
+        t4 = servo4.getPsycTemperature(),
+        t5 = servo5.getPsycTemperature(),
+        t6 = servo6?.getPsycTemperature(),
+        l1 = servo1.getPsycL(),
+        l2 = servo2.getPsycL(),
+        l3 = servo3.getPsycL(),
+        l4 = servo4.getPsycL(),
+        l5 = servo5.getPsycL(),
+        l6 = servo6?.getPsycL(),
+        x = X,
+        y = Y,
+        t = T
+    )
 
     override fun toDataDto(n: Int): DataDto = DataDto(
         deviceName = deviceName(),

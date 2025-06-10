@@ -14,7 +14,7 @@ fun Application.dataController() {
     routing {
         webSocket("/api/monitor/ws/data") {
             monitorService.getDataFlow().collect { data ->
-                send(Frame.Text(Json.encodeToString(mapOf("raw" to data))))
+                send(Frame.Text(Json.encodeToString(data)))
             }
         }
     }

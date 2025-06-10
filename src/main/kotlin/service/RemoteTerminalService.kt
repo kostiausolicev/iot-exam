@@ -11,26 +11,46 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
 import ru.guap.config.Collections
 import ru.guap.dto.CommandDto
+import ru.guap.dto.DeviceDto
 import ru.guap.dto.LampsDTO
 import ru.guap.dto.RobotStatusDTO
 import ru.guap.dto.SendCommandDto
 import ru.guap.dto.StatusDTO
 import ru.guap.thing.Device
+import ru.guap.thing.robot.GrabRobot
 import ru.guap.thing.robot.Robot
+import ru.guap.thing.robot.VacuumRobot
 import ru.guap.thing.smart.lamp.SmartLamp
 
 class RemoteTerminalService(
     private val mongoDatabase: MongoDatabase
 ) {
     private val devices: MutableList<out Device> = mutableListOf(
-        SmartLamp(id = 1)
+        SmartLamp(id = 1),
+        GrabRobot(id = 2),
+        VacuumRobot(id = 3),
     )
+
+    fun getDevices(): List<DeviceDto> {
+        return devices.map {
+            DeviceDto(
+                id = it.id,
+                name = it.deviceName()
+            )
+        }
+    }
 
     suspend fun executeCommand() {
         getPendingCommands().forEach { command ->
             val device = devices.find { it.deviceName() == command.device && !it.running }
                 ?: throw IllegalArgumentException("Device with name ${command.device} not found")
             when (device) {
+                is GrabRobot -> {
+
+                }
+                is VacuumRobot -> {
+
+                }
                 is SmartLamp -> {
                     val lights = command.params["lights"] as List<String>
                     device.setLight(lights) {

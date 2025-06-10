@@ -1,6 +1,7 @@
 // Ожидание полной загрузки DOM перед выполнением скрипта
 document.addEventListener('DOMContentLoaded', () => {
     // Ссылки на элементы DOM для компонентов интерфейса
+    const select = document.getElementById('cmdDeviceId');
     const toggleReceive = document.getElementById('toggleReceive'); // Чекбокс для включения/выключения получения данных
     const toggleSend = document.getElementById('toggleSend'); // Чекбокс для включения/выключения отправки команд
     const poiTableBody = document.querySelector('#poiTable tbody'); // Тело таблицы для списка POI
@@ -15,6 +16,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const refreshQueueBtn = document.getElementById('refreshQueue'); // Кнопка для обновления очереди команд
     const eventLogDiv = document.getElementById('eventLog'); // Контейнер для лога событий
     let wsStatus; // Экземпляр WebSocket для обновления статусов
+
+    fetch('http://localhost:8080/api/devices')
+        .then(res => res.json())
+        .then(devices => {
+            select.innerHTML = '';
+            devices.forEach(device => {
+                const option = document.createElement('option');
+                option.value = device.id;
+                option.textContent = device.name;
+                select.appendChild(option);
+            });
+        })
 
     // Инициализация: загрузка списка POI, статусов, очереди команд и запуск WebSocket
     fetch('http://localhost:8080/api/poi')

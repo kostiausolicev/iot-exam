@@ -9,6 +9,7 @@ import io.ktor.server.websocket.WebSockets
 import io.ktor.server.websocket.pingPeriod
 import io.ktor.server.websocket.timeout
 import ru.guap.controller.commandController
+import ru.guap.controller.deviceController
 import ru.guap.controller.poiController
 import ru.guap.controller.statusesController
 import kotlin.time.Duration.Companion.seconds
@@ -31,4 +32,5 @@ fun Application.configureRouting() {
     commandController()
     statusesController()
     poiController()
+    deviceController()
 }

@@ -56,7 +56,12 @@ class RemoteTerminalService(
                     }
 
                     val t = command.params["T"].toString().toIntOrNull()
-                    if (t != null) device.turn(t)
+                    if (t != null) {
+                        setCommandStatus(command, "Running")
+                        device.turn(t) {
+                            setCommandStatus(command, "Executed")
+                        }
+                    }
 
                     val grag = if (device is GrabRobot) command.params["G"].toString().toIntOrNull()
                     else command.params["V"].toString().toIntOrNull()

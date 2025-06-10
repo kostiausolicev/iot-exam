@@ -1,10 +1,13 @@
 package ru.guap.thing.robot
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import ru.guap.thing.Device
 import ru.guap.thing.robot.component.Servo
-import kotlin.math.pow
-import kotlin.math.sqrt
 
 abstract class Robot : Device {
     private val servo1: Servo
@@ -53,8 +56,12 @@ abstract class Robot : Device {
         callback?.invoke()
     }
 
-    fun turn(angle: Int) {
-
+    suspend fun turn(angle: Int, callback: (suspend () -> Unit)? = null) {
+        running = true
+        delay(10_000)
+        T = angle
+        running = false
+        callback?.invoke()
     }
 
     fun toDto() {

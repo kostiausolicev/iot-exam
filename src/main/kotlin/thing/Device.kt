@@ -1,6 +1,7 @@
 package ru.guap.thing
 
-interface Device : Connectable {
-    var id: Int
-    fun deviceName(): String
+abstract class Device : Connectable {
+    var running: Boolean = false
+    abstract var id: Int
+    abstract fun deviceName(): String
 }

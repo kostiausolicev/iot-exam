@@ -173,6 +173,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
     }
 
+    sendCmdBtn.addEventListener('click', () => {
+        // Получение параметров команды из полей ввода
+        const deviceId = parseInt(document.getElementById('cmdDeviceId').value, 10);
+        const X = parseFloat(document.getElementById('cmdX').value);
+        const Y = parseFloat(document.getElementById('cmdY').value);
+        const T = parseFloat(document.getElementById('cmdT').value);
+        const G = parseInt(document.getElementById('cmdG').value, 10);
+        const V = parseInt(document.getElementById('cmdV').value, 10);
+
+        // Сбор состояний выбранных ламп
+        const lights = [];
+        if (document.getElementById('cmdL1').checked) lights.push('L1');
+        if (document.getElementById('cmdL2').checked) lights.push('L2');
+        if (document.getElementById('cmdL3').checked) lights.push('L3');
+        if (document.getElementById('cmdL4').checked) lights.push('L4');
+
+        if (!toggleSend.checked) return; // Проверка, включена ли отправка
+
+        // Отправка команды на сервер
+        sendCommand({ deviceId, X, Y, T, G, V, lights });
+    });
+
     /**
      * Обновляет цвет индикатора lampIndex:
      *  - если val == 1 → зажигает свой цвет,

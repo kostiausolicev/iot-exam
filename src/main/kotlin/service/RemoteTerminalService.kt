@@ -28,7 +28,7 @@ class RemoteTerminalService(
 
     suspend fun executeCommand() {
         getPendingCommands().forEach { command ->
-            val device = devices.find { it.deviceName() == command.device }
+            val device = devices.find { it.deviceName() == command.device && !it.running }
                 ?: throw IllegalArgumentException("Device with name ${command.device} not found")
             when (device) {
                 is SmartLamp -> {

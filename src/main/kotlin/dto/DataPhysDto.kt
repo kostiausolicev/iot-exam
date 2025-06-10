@@ -2,6 +2,8 @@ package ru.guap.dto
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import ru.guap.config.LocalDateSerializer
+import java.time.LocalDateTime
 
 @Serializable
 data class DataPhysDto(
@@ -37,4 +39,7 @@ data class DataPhysDto(
     val b1: Int? = null,
     val b2: Int? = null,
     val b3: Int? = null,
+
+    @Serializable(LocalDateSerializer::class) val timestamp: LocalDateTime = LocalDateTime.now(),
+    val deviceId: Int? = null,
 )

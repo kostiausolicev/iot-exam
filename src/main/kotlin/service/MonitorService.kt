@@ -6,7 +6,9 @@ import com.mongodb.kotlin.client.coroutine.MongoDatabase
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.toList
 import ru.guap.config.Collections
+import ru.guap.dto.ChartsDto
 import ru.guap.dto.CommandDto
 import ru.guap.dto.DataDto
 import ru.guap.dto.DataPhysDto
@@ -113,5 +115,30 @@ class MonitorService(
         mongoDatabase.getCollection<DataPhysDto>(Collections.METRIC.collectionName)
             .insertOne(data)
         return data
+    }
+
+    suspend fun getData(start: LocalDateTime, end: LocalDateTime, ms: String, deviceId: Int): ChartsDto {
+        return when(ms) {
+            "position" -> {
+                val data = mongoDatabase.getCollection<DataPhysDto>(Collections.METRIC.collectionName)
+                    .find(Filters.and(
+                        Filters.gt("timestamp", start),
+                        Filters.lt("timestamp", end),
+                        Filters.eq("deviceId", deviceId)
+                    ))
+                    .toList()
+                val timestamps = data.map { it.timestamp }
+                val x = data.mapNotNull { it.x }
+                val y = data.mapNotNull { it.y }
+                val t = data.mapNotNull { it.t }
+                ChartsDto(
+                    timestamps = timestamps,
+                    x = x,
+                    y = y,
+                    t = t
+                )
+            }
+            else -> throw Exception()
+        }
     }
 }

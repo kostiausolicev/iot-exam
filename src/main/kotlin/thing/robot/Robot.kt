@@ -7,6 +7,7 @@ import ru.guap.dto.Threshold
 import ru.guap.dto.ThresholdsDto
 import ru.guap.thing.Device
 import ru.guap.thing.robot.component.Servo
+import java.time.LocalDateTime
 
 abstract class Robot : Device {
     private val servo1: Servo
@@ -302,7 +303,9 @@ abstract class Robot : Device {
         l6 = servo6?.getPsycL(),
         x = X,
         y = Y,
-        t = T
+        t = T,
+        timestamp = LocalDateTime.now(),
+        deviceId = id
     )
 
     override fun toDataDto(n: Int): DataDto = DataDto(

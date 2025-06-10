@@ -27,10 +27,11 @@ fun Application.dataController() {
         get("/api/data") {
             val start = call.queryParameters["from"]!!.let { LocalDateTime.parse(it) }
             val end = call.queryParameters["to"]!!.let { LocalDateTime.parse(it) }
-            val ms = call.queryParameters["ms"]!!.split(",").map { it.trim() }
+            val ms = call.queryParameters["ms"]!!
+            val deviceId = call.queryParameters["deviceId"]?.toInt() ?: 2
 
-//            val data = monitorService.getData(start, end, ms)
-//            call.respond(data)
+            val data = monitorService.getData(start, end, ms, deviceId)
+            call.respond(data)
         }
 
         get("/api/thresholds") {

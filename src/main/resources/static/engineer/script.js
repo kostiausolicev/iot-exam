@@ -312,6 +312,7 @@ document.addEventListener('DOMContentLoaded', () => {
         fetch(`http://localhost:8080/api/data?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&ms=${paramsSelected.join(',')}`)
             .then(res => res.json())
             .then(data => {
+                console.log(data)
                 const ctx = document.getElementById('dataChart').getContext('2d');
                 if (window.chart) window.chart.destroy(); // Уничтожение предыдущего графика
                 window.chart = new Chart(ctx, {

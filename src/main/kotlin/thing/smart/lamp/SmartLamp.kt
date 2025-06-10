@@ -4,6 +4,7 @@ import kotlinx.coroutines.delay
 import ru.guap.dto.DataDto
 import ru.guap.dto.DataPhysDto
 import ru.guap.thing.Device
+import java.time.LocalDateTime
 
 class SmartLamp(override var id: Int) : Device() {
     private var status: Boolean = false
@@ -49,6 +50,8 @@ class SmartLamp(override var id: Int) : Device() {
 
     override fun toDataPsycDto(n: Int): DataPhysDto = DataPhysDto(
         deviceName = deviceName(),
-        n = n
+        n = n,
+        timestamp = LocalDateTime.now(),
+        deviceId = id
     )
 }

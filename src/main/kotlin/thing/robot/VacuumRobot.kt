@@ -10,17 +10,6 @@ class VacuumRobot(override var id: Int) : Robot(
     servo5 = Servo(),
     servo6 = null
 ) {
-    override fun moveTo(x: Int, y: Int, z: Int) {
-        TODO("Not yet implemented")
-    }
-
-    override fun grab() {
-        TODO("Not yet implemented")
-    }
-
-    override fun turn(angle: Int) {
-        TODO("Not yet implemented")
-    }
 
     override fun deviceName(): String = "Vacuum Robot: Applied Robotics AR-RTK-PL-01"
 }

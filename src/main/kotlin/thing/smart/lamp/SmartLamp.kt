@@ -1,9 +1,12 @@
 package ru.guap.thing.smart.lamp
 
 import kotlinx.coroutines.delay
+import ru.guap.dto.DataDto
+import ru.guap.dto.DataPhysDto
 import ru.guap.thing.Device
+import java.time.LocalDateTime
 
-class SmartLamp(override var id: Int) : Device {
+class SmartLamp(override var id: Int) : Device() {
     private var status: Boolean = false
     private var l1: Boolean = false // Синяя - выполнение
     private var l2: Boolean = false // Красная - авария
@@ -11,12 +14,16 @@ class SmartLamp(override var id: Int) : Device {
     private var l4: Boolean = false // Зеленая - ожидание
 
     suspend fun setLight(lights: List<String>, callback: (suspend () -> Unit)? = null) {
+        l1 = false
+        l2 = false
+        l3 = false
+        l4 = false
         lights.forEach { light ->
             when (light) {
-                "L1" -> { l1 = true; l2 = false; l3 = false; l4 = false }
-                "L2" -> { l1 = false; l2 = true; l3 = false; l4 = false }
-                "L3" -> { l1 = false; l2 = false; l3 = true; l4 = false }
-                "L4" -> { l1 = false; l2 = false; l3 = false; l4 = true }
+                "L1" -> l1 = true
+                "L2" -> l2 = true
+                "L3" -> l3 = true
+                "L4" -> l4 = true
                 else -> throw IllegalArgumentException("Unknown light: $light")
             }
         }
@@ -36,4 +43,15 @@ class SmartLamp(override var id: Int) : Device {
     }
 
     override fun deviceName(): String = "SmartLamp"
+    override fun toDataDto(n: Int): DataDto = DataDto(
+        deviceName = deviceName(),
+        n = n
+    )
+
+    override fun toDataPsycDto(n: Int): DataPhysDto = DataPhysDto(
+        deviceName = deviceName(),
+        n = n,
+        timestamp = LocalDateTime.now(),
+        deviceId = id
+    )
 }

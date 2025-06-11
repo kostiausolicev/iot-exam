@@ -66,21 +66,19 @@ document.addEventListener('DOMContentLoaded', () => {
      * Загрузка сохраненных порогов с сервера и заполнение полей
      */
     function loadThresholds() {
-        fetch('/api/thresholds')
+        fetch('http://localhost:8080/api/thresholds')
             .then(res => res.json())
             .then(data => {
                 // Предполагается, что данные имеют формат { m1: { warn_min, warn_max, crit_min, crit_max }, ... }
                 params.forEach(param => {
-                    const warn = data[param] ? data[param].warning : null;
-                    const crit = data[param] ? data[param].critical : null;
-                    if (warn) {
-                        document.getElementById(`warn_${param}_min`).value = warn.min;
-                        document.getElementById(`warn_${param}_max`).value = warn.max;
-                    }
-                    if (crit) {
-                        document.getElementById(`crit_${param}_min`).value = crit.min;
-                        document.getElementById(`crit_${param}_max`).value = crit.max;
-                    }
+                    const warnMin = data[param].warn_min
+                    const warnMax = data[param].warn_max
+                    const critMin = data[param].crit_min
+                    const critMax = data[param].crit_max
+                    document.getElementById(`warn_${param}_min`).value = warnMin;
+                    document.getElementById(`warn_${param}_max`).value = warnMax;
+                    document.getElementById(`crit_${param}_min`).value = critMin;
+                    document.getElementById(`crit_${param}_max`).value = critMax;
                 });
             });
     }
@@ -96,11 +94,15 @@ document.addEventListener('DOMContentLoaded', () => {
             const critMin = document.getElementById(`crit_${param}_min`).value;
             const critMax = document.getElementById(`crit_${param}_max`).value;
             payload[param] = {
-                warning: { min: warnMin, max: warnMax },
-                critical: { min: critMin, max: critMax }
+                warn_min: warnMin,
+                warn_max: warnMax,
+                crit_min: critMin,
+                crit_max: critMax
+                // warning: { min: warnMin, max: warnMax },
+                // critical: { min: critMin, max: critMax }
             };
         });
-        fetch('/api/thresholds', {
+        fetch('http://localhost:8080/api/thresholds', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
@@ -119,12 +121,19 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     loadThresholds(); // Загрузка порогов
 
+    if (toggleCollect.checked) {
+        startDataWS(); // Запуск WebSocket при включении
+        startAlertsWS();
+    }
+
     // Обработчики событий для переключателей и поля частоты
     toggleCollect.addEventListener('change', () => {
         if (toggleCollect.checked) {
             startDataWS(); // Запуск WebSocket при включении
+            startAlertsWS();
         } else {
             stopDataWS(); // Остановка WebSocket при выключении
+            stopAlertsWS();
         }
         fetch('/api/config', {
             method: 'POST',
@@ -174,16 +183,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('clearLog').addEventListener('click', () => {
         alertLogDiv.innerHTML = ''; // Очистка лога
-        fetch('/api/alerts/clear', { method: 'POST' }); // Очистка лога на сервере
+        fetch('http://localhost:8080/api/alerts/clear', { method: 'POST' }); // Очистка лога на сервере
     });
 
     /**
      * Запуск WebSocket для получения сырых и физических данных
      */
     function startDataWS() {
-        wsData = new WebSocket('ws://' + location.host + '/ws/data');
+        wsData = new WebSocket('ws://localhost:8080/api/monitor/ws/data');
         wsData.onmessage = event => {
             const payload = JSON.parse(event.data);
+            console.log(payload)
             updateRawTable(payload.raw); // Обновление таблицы сырых данных
             updatePhysTable(payload.physical); // Обновление таблицы физических данных
         };
@@ -200,11 +210,18 @@ document.addEventListener('DOMContentLoaded', () => {
      * Запуск WebSocket для получения алертов
      */
     function startAlertsWS() {
-        wsAlerts = new WebSocket('ws://' + location.host + '/ws/alerts');
+        wsAlerts = new WebSocket('ws://localhost:8080/api/alerts/ws/alerts');
         wsAlerts.onmessage = event => {
             const alert = JSON.parse(event.data);
             appendAlert(alert); // Добавление алерта в лог
         };
+    }
+
+    /**
+     * Остановка WebSocket для данных
+     */
+    function stopAlertsWS() {
+        if (wsAlerts) wsAlerts.close(); // Закрытие WebSocket, если он существует
     }
 
     /**
@@ -240,37 +257,31 @@ document.addEventListener('DOMContentLoaded', () => {
         physTableBody.innerHTML = ''; // Очистка таблицы
         data.forEach(item => {
             const tr = document.createElement('tr');
-            // Функция для создания ячейки с учетом статуса
-            function td(val, status) {
-                if (status === 'warning') return `<td class="highlight-warning">${val}</td>`;
-                if (status === 'critical') return `<td class="highlight-critical">${val}</td>`;
-                return `<td>${val}</td>`;
-            }
             tr.innerHTML = `
                 <td>${item.device}</td>
-                ${td(item.theta1, item.status_theta1)}
-                ${td(item.theta2, item.status_theta2)}
-                ${td(item.theta3, item.status_theta3)}
-                ${td(item.theta4, item.status_theta4)}
-                ${td(item.theta5, item.status_theta5)}
-                ${td(item.theta6, item.status_theta6)}
-                ${td(item.T1, item.status_T1)}
-                ${td(item.T2, item.status_T2)}
-                ${td(item.T3, item.status_T3)}
-                ${td(item.T4, item.status_T4)}
-                ${td(item.T5, item.status_T5)}
-                ${td(item.T6, item.status_T6)}
-                ${td(item.L1, item.status_L1)}
-                ${td(item.L2, item.status_L2)}
-                ${td(item.L3, item.status_L3)}
-                ${td(item.L4, item.status_L4)}
-                ${td(item.L5, item.status_L5)}
-                ${td(item.L6, item.status_L6)}
-                ${td(item.X, item.status_X)}
-                ${td(item.Y, item.status_Y)}
-                ${td(item.Tpos, item.status_Tpos)}
-                ${td(item.G, item.status_G)}
-                ${td(item.V, item.status_V)}
+                <td>${item.theta1}</td>
+                <td>${item.theta2}</td>
+                <td>${item.theta3}</td>
+                <td>${item.theta4}</td>
+                <td>${item.theta5}</td>
+                <td>${item.theta6}</td>
+                <td>${item.T1}</td>
+                <td>${item.T2}</td>
+                <td>${item.T3}</td>
+                <td>${item.T4}</td>
+                <td>${item.T5}</td>
+                <td>${item.T6}</td>
+                <td>${item.L1}</td>
+                <td>${item.L2}</td>
+                <td>${item.L3}</td>
+                <td>${item.L4}</td>
+                <td>${item.L5}</td>
+                <td>${item.L6}</td>
+                <td>${item.X}</td>
+                <td>${item.Y}</td>
+                <td>${item.Tpos}</td>
+                <td>${item.G}</td>
+                <td>${item.V}</td>
                 <td>${item.code}</td>
                 <td>${item.p}</td>
                 <td>${item.b1}</td>
@@ -287,7 +298,8 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     function appendAlert(alert) {
         const div = document.createElement('div');
-        div.textContent = `${alert.timestamp} - ${alert.device}: ${alert.param}=${alert.value}, порог=${alert.threshold}`;
+        // div.textContent = `${alert.timestamp} - ${alert.device}: ${alert.param}=${alert.value}, порог=${alert.threshold}`;
+        div.textContent = `${alert.level}:${alert.timestamp} ${alert.message}`
         alertLogDiv.prepend(div); // Добавление записи в начало лога
     }
 
@@ -307,36 +319,36 @@ document.addEventListener('DOMContentLoaded', () => {
     `&to=${encodeURIComponent(to)}` +
     `&ms=${encodeURIComponent(ms)}`;
 
-  fetch(url)
-    .then(res => res.json())
-    .then(response => {
-      const ctx = document.getElementById('dataChart').getContext('2d');
-      if (window.chart) window.chart.destroy();
+    fetch(url)
+      .then(res => res.json())
+      .then(response => {
+        const ctx = document.getElementById('dataChart').getContext('2d');
+        if (window.chart) window.chart.destroy();
 
-      // Ожидаем формат:
-      // {
-      //   timestamps: [...],
-      //   серии: {
-      //     theta1: [...], theta2: [...], ...
-      //   }
-      // }
-      const labels = response.timestamps;
-      const series = response.series; // объект с нужными ключами
+        // Ожидаем формат:
+        // {
+        //   timestamps: [...],
+        //   серии: {
+        //     theta1: [...], theta2: [...], ...
+        //   }
+        // }
+        const labels = response.timestamps;
+        const series = response.series; // объект с нужными ключами
 
-      // Преобразуем в массив datasets для Chart.js
-      const datasets = Object.keys(series).map(key => ({
-        label: key,
-        data: series[key]
-      }));
+        // Преобразуем в массив datasets для Chart.js
+        const datasets = Object.keys(series).map(key => ({
+          label: key,
+          data: series[key]
+        }));
 
-      window.chart = new Chart(ctx, {
-        type: 'line',
-        data: { labels, datasets },
-        options: { responsive: true, scales: { x: { type: 'time' } } }
+        window.chart = new Chart(ctx, {
+          type: 'line',
+          data: { labels, datasets },
+          options: { responsive: true, scales: { x: { type: 'time' } } }
+        });
       });
-    });
-    }
-    document.getElementById('buildChart').addEventListener('click', buildChart);
+      }
+      document.getElementById('buildChart').addEventListener('click', buildChart);
 
     /**
      * Загрузка истории данных по временному диапазону и номеру страницы

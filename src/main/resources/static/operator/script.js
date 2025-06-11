@@ -1,6 +1,7 @@
 // Ожидание полной загрузки DOM перед выполнением скрипта
 document.addEventListener('DOMContentLoaded', () => {
     // Ссылки на элементы DOM для компонентов интерфейса
+    const select = document.getElementById('cmdDeviceId');
     const toggleReceive = document.getElementById('toggleReceive'); // Чекбокс для включения/выключения получения данных
     const toggleSend = document.getElementById('toggleSend'); // Чекбокс для включения/выключения отправки команд
     const poiTableBody = document.querySelector('#poiTable tbody'); // Тело таблицы для списка POI
@@ -16,12 +17,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const eventLogDiv = document.getElementById('eventLog'); // Контейнер для лога событий
     let wsStatus; // Экземпляр WebSocket для обновления статусов
 
+    fetch('http://localhost:8080/api/devices')
+        .then(res => res.json())
+        .then(devices => {
+            select.innerHTML = '';
+            devices.forEach(device => {
+                const option = document.createElement('option');
+                option.value = device.id;
+                option.textContent = device.name;
+                select.appendChild(option);
+            });
+        })
+
     // Инициализация: загрузка списка POI, статусов, очереди команд и запуск WebSocket
     fetch('http://localhost:8080/api/poi')
         .then(res => res.json())
         .then(data => renderPoi(data)); // Загрузка и отображение списка POI
 
-    console.log("123")
     fetchStatuses(); // Загрузка начальных статусов
     loadQueue(); // Загрузка очереди команд
     startStatusWS(); // Запуск WebSocket для обновления статусов
@@ -160,7 +172,7 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
             // Установка цвета индикатора: синий для s==1, зеленый для других
             const ind = document.createElement('span');
-            ind.className = 'indicator ' + (r.s == 1 ? 'indicator-blue' : 'indicator-green');
+            ind.className = 'indicator ' + (r.s === 1 ? 'indicator-blue' : 'indicator-green');
             card.appendChild(ind);
             robotsStatusDiv.appendChild(card); // Добавление карточки в контейнер
         });
@@ -172,6 +184,28 @@ document.addEventListener('DOMContentLoaded', () => {
         setLamp(indL4, state.lamps.L4, 4);
 
     }
+
+    sendCmdBtn.addEventListener('click', () => {
+        // Получение параметров команды из полей ввода
+        const deviceId = parseInt(document.getElementById('cmdDeviceId').value, 10);
+        const X = parseFloat(document.getElementById('cmdX').value);
+        const Y = parseFloat(document.getElementById('cmdY').value);
+        const T = parseFloat(document.getElementById('cmdT').value);
+        const G = parseInt(document.getElementById('cmdG').value, 10);
+        const V = parseInt(document.getElementById('cmdV').value, 10);
+
+        // Сбор состояний выбранных ламп
+        const lights = [];
+        if (document.getElementById('cmdL1').checked) lights.push('L1');
+        if (document.getElementById('cmdL2').checked) lights.push('L2');
+        if (document.getElementById('cmdL3').checked) lights.push('L3');
+        if (document.getElementById('cmdL4').checked) lights.push('L4');
+
+        if (!toggleSend.checked) return; // Проверка, включена ли отправка
+
+        // Отправка команды на сервер
+        sendCommand({ deviceId, X, Y, T, G, V, lights });
+    });
 
     /**
      * Обновляет цвет индикатора lampIndex:

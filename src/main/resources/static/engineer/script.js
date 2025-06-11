@@ -44,23 +44,39 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderThresholdInputs() {
         const container = document.getElementById('thresholds');
-        container.innerHTML = '';
-        params.forEach(p => {
-            ['warn', 'crit'].forEach(type => {
-                const label = document.createElement('label');
-                label.textContent = `${type==='warn'?'Warning':'Critical'} ${p}`;
-                const min = document.createElement('input');
-                min.type = 'number';
-                min.id = `${type}_${p}_min`;
-                min.placeholder = 'Min';
-                const max = document.createElement('input');
-                max.type = 'number';
-                max.id = `${type}_${p}_max`;
-                max.placeholder = 'Max';
-                container.appendChild(label);
-                container.appendChild(min);
-                container.appendChild(max);
-            });
+        container.innerHTML = ''; // Очистка контейнера
+        params.forEach(param => {
+            // Поля для Warning-диапазона
+            const warnLabel = document.createElement('label');
+            warnLabel.textContent = `Warning ${param}`;
+            const warnMin = document.createElement('input');
+            warnMin.type = 'number';
+            warnMin.id = `warn_${param}_min`;
+            warnMin.placeholder = 'Min';
+            const warnMax = document.createElement('input');
+            warnMax.type = 'number';
+            warnMax.id = `warn_${param}_max`;
+            warnMax.placeholder = 'Max';
+
+            // Поля для Critical-диапазона
+            const critLabel = document.createElement('label');
+            critLabel.textContent = `Critical ${param}`;
+            const critMin = document.createElement('input');
+            critMin.type = 'number';
+            critMin.id = `crit_${param}_min`;
+            critMin.placeholder = 'Min';
+            const critMax = document.createElement('input');
+            critMax.type = 'number';
+            critMax.id = `crit_${param}_max`;
+            critMax.placeholder = 'Max';
+
+            // Добавление элементов в контейнер
+            container.appendChild(warnLabel);
+            container.appendChild(warnMin);
+            container.appendChild(warnMax);
+            container.appendChild(critLabel);
+            container.appendChild(critMin);
+            container.appendChild(critMax);
         });
     }
     renderThresholdInputs();
@@ -69,28 +85,34 @@ document.addEventListener('DOMContentLoaded', () => {
         fetch('http://localhost:8080/api/thresholds')
             .then(res => res.json())
             .then(data => {
-                params.forEach(p => {
-                    const t = data[p] || {};
-                    document.getElementById(`warn_${p}_min`).value = t.warning ?.min ?? '';
-                    document.getElementById(`warn_${p}_max`).value = t.warning ?.max ?? '';
-                    document.getElementById(`crit_${p}_min`).value = t.critical ?.min ?? '';
-                    document.getElementById(`crit_${p}_max`).value = t.critical ?.max ?? '';
+                // Предполагается, что данные имеют формат { m1: { warn_min, warn_max, crit_min, crit_max }, ... }
+                params.forEach(param => {
+                    const warnMin = data[param].warn_min
+                    const warnMax = data[param].warn_max
+                    const critMin = data[param].crit_min
+                    const critMax = data[param].crit_max
+                    document.getElementById(`warn_${param}_min`).value = warnMin;
+                    document.getElementById(`warn_${param}_max`).value = warnMax;
+                    document.getElementById(`crit_${param}_min`).value = critMin;
+                    document.getElementById(`crit_${param}_max`).value = critMax;
                 });
             });
     }
 
     function saveThresholds() {
         const payload = {};
-        params.forEach(p => {
-            payload[p] = {
-                warning: {
-                    min: +document.getElementById(`warn_${p}_min`).value,
-                    max: +document.getElementById(`warn_${p}_max`).value
-                },
-                critical: {
-                    min: +document.getElementById(`crit_${p}_min`).value,
-                    max: +document.getElementById(`crit_${p}_max`).value
-                }
+        params.forEach(param => {
+            const warnMin = document.getElementById(`warn_${param}_min`).value;
+            const warnMax = document.getElementById(`warn_${param}_max`).value;
+            const critMin = document.getElementById(`crit_${param}_min`).value;
+            const critMax = document.getElementById(`crit_${param}_max`).value;
+            payload[param] = {
+                warn_min: warnMin,
+                warn_max: warnMax,
+                crit_min: critMin,
+                crit_max: critMax
+                // warning: { min: warnMin, max: warnMax },
+                // critical: { min: critMin, max: critMax }
             };
         });
         fetch('http://localhost:8080/api/thresholds', {
@@ -101,17 +123,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     saveThresholdsBtn.addEventListener('click', saveThresholds);
     loadThresholds();
-
-
-    fetch('http://localhost:8080/api/config')
-        .then(res => res.json())
-        .then(cfg => {
-            toggleCollect.checked = cfg.collect;
-            toggleSave.checked = cfg.save;
-            updateFreq.value = cfg.frequency;
-            if (cfg.collect) startDataWS();
-            startAlertsWS();
-        });
 
     toggleCollect.addEventListener('change', () => {
         toggleCollect.checked ? startDataWS() : stopDataWS();
@@ -258,15 +269,19 @@ function buildChart() {
     return;
   }
 
-  const url = `http://localhost:8080/api/data?deviceId=${encodeURIComponent(deviceId)}`
+  const url = `http://localhost:8080/api/data?`
             + `&from=${encodeURIComponent(from)}`
             + `&to=${encodeURIComponent(to)}`
-            + `&ms=${encodeURIComponent(ms)}`;
+            + `&ms=${encodeURIComponent(ms)}`
+            + `&deviceId=${encodeURIComponent(deviceId)}`;
 
   fetch(url)
+    .then(res => res.json())
     .then(data => {
       // Универсальная обёртка: если массив — берём первый элемент, если объект — оставляем как есть
       const parsed = Array.isArray(data) ? data[0] : data;
+
+      console.log(data)
 
       if (!parsed || !parsed.timestamps || !parsed.X || !parsed.Y || !parsed.T) {
         alert('Пустой или некорректный ответ от сервера');

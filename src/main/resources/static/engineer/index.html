@@ -143,36 +143,6 @@
       <button id="buildChart">Построить</button>
       <canvas id="dataChart" class="charts"></canvas>
     </div>
-
-    <!-- Панель Истории данных -->
-    <div class="panel" id="historyPanel">
-      <h3>История данных</h3>
-      <label for="histFrom">С</label>
-      <input type="datetime-local" id="histFrom">
-      <label for="histTo">По</label>
-      <input type="datetime-local" id="histTo">
-      <button id="loadHistory">Загрузить</button>
-      <table id="historyTable">
-        <thead>
-        <tr>
-          <th>Timestamp</th>
-          <th>Устройство</th>
-          <th>Raw</th>
-          <th>Physical</th>
-          <th>Статус</th>
-        </tr>
-        </thead>
-        <tbody>
-        <!-- JS заполняет данными -->
-        </tbody>
-      </table>
-      <div style="margin-top: 5px; text-align: center;">
-        <button id="prevPage">Предыдущая</button>
-        <span id="pageInfo">Стр. 1</span>
-        <button id="nextPage">Следующая</button>
-      </div>
-    </div>
-
     <!-- Панель Лога критических событий -->
     <div class="panel log" id="alertLogPanel">
       <h3>Лог критических событий</h3>

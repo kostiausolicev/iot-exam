@@ -298,14 +298,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const deviceId = document.getElementById('deviceSelect').value;
   const from     = document.getElementById('fromTime').value;
   const to       = document.getElementById('toTime').value;
-  const param    = document.getElementById('paramSelect').value; // один параметр
+  const ms    = document.getElementById('msSelect').value; // один параметр
 
-  // Собираем URL с 4 параметрами: from, to, deviceId и param
-  const url = `/api/data?` +
+  // Собираем URL с 4 параметрами: from, to, deviceId и ms
+  const url = `http://localhost:8080/api/data?` +
     `deviceId=${encodeURIComponent(deviceId)}` +
     `&from=${encodeURIComponent(from)}` +
     `&to=${encodeURIComponent(to)}` +
-    `&param=${encodeURIComponent(param)}`;
+    `&ms=${encodeURIComponent(ms)}`;
 
   fetch(url)
     .then(res => res.json())

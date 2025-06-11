@@ -161,7 +161,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (wsData) wsData.close();
     }
 
-
     function startAlertsWS() {
         wsAlerts = new WebSocket('ws://localhost:8080/api/alerts/ws/alerts');
         wsAlerts.onmessage = e => {
@@ -264,10 +263,13 @@ function buildChart() {
   const to       = toInput.value;
   const ms       = msSelect.value;
 
+  console.log(111)
+
   if (!deviceId || !from || !to || !ms) {
     alert('Выберите устройство, параметр и укажите диапазон по времени');
     return;
   }
+    console.log(222)
 
   const url = `http://localhost:8080/api/data?`
             + `&from=${encodeURIComponent(from)}`
@@ -278,6 +280,7 @@ function buildChart() {
   fetch(url)
     .then(res => res.json())
     .then(data => {
+        console.log(333)
       // Универсальная обёртка: если массив — берём первый элемент, если объект — оставляем как есть
       const parsed = Array.isArray(data) ? data[0] : data;
 

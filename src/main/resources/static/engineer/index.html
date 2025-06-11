@@ -122,17 +122,23 @@
     <!-- Панель Графиков -->
     <div class="panel" id="chartsPanel">
       <h3>Графики</h3>
+      <label for="deviceSelect">Устройство</label>
+      <select id="deviceSelect">
+        <option value="1">1</option>
+        <option value="2">2</option>
+      </select>
+
       <label for="fromTime">С</label>
       <input type="datetime-local" id="fromTime">
       <label for="toTime">По</label>
       <input type="datetime-local" id="toTime">
-      <div>
-        <!-- Чекбоксы для выбора серий данных -->
-        <label><input type="checkbox" class="chartParam" value="theta"> Углы θ1..θ6</label>
-        <label><input type="checkbox" class="chartParam" value="temp"> Температура T1..T6</label>
-        <label><input type="checkbox" class="chartParam" value="load"> Нагрузка L1..L6</label>
-        <label><input type="checkbox" class="chartParam" value="position"> X, Y, T</label>
-      </div>
+      <label for="paramSelect">Параметр</label>
+      <select id="paramSelect">
+        <option value="theta">Углы θ1..θ6</option>
+        <option value="temp">Температура T1..T6</option>
+        <option value="load">Нагрузка L1..L6</option>
+        <option value="position">Позиция X,Y,T</option>
+      </select>
       <button id="buildChart">Построить</button>
       <canvas id="dataChart" class="charts"></canvas>
     </div>
@@ -179,6 +185,7 @@
 
 <!-- Подключение библиотеки Chart.js для графиков -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@2"></script>
 <script src="script.js"></script>
 </body>
 </html>

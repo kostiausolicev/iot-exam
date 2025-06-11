@@ -295,23 +295,46 @@ document.addEventListener('DOMContentLoaded', () => {
      * Построение графика по выбранным параметрам и временному диапазону
      */
     function buildChart() {
-        const from = document.getElementById('fromTime').value;
-        const to = document.getElementById('toTime').value;
-        const paramsSelected = Array.from(document.querySelectorAll('.chartParam:checked')).map(cb => cb.value);
-        fetch(`/api/data?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}¶ms=${paramsSelected.join(',')}`)
-            .then(res => res.json())
-            .then(data => {
-                const ctx = document.getElementById('dataChart').getContext('2d');
-                if (window.chart) window.chart.destroy(); // Уничтожение предыдущего графика
-                window.chart = new Chart(ctx, {
-                    type: 'line',
-                    data: data,
-                    options: {
-                        responsive: true,
-                        scales: { x: { type: 'time' } }
-                    }
-                });
-            });
+  const deviceId = document.getElementById('deviceSelect').value;
+  const from     = document.getElementById('fromTime').value;
+  const to       = document.getElementById('toTime').value;
+  const param    = document.getElementById('paramSelect').value; // один параметр
+
+  // Собираем URL с 4 параметрами: from, to, deviceId и param
+  const url = `/api/data?` +
+    `deviceId=${encodeURIComponent(deviceId)}` +
+    `&from=${encodeURIComponent(from)}` +
+    `&to=${encodeURIComponent(to)}` +
+    `&param=${encodeURIComponent(param)}`;
+
+  fetch(url)
+    .then(res => res.json())
+    .then(response => {
+      const ctx = document.getElementById('dataChart').getContext('2d');
+      if (window.chart) window.chart.destroy();
+
+      // Ожидаем формат:
+      // {
+      //   timestamps: [...],
+      //   серии: {
+      //     theta1: [...], theta2: [...], ...
+      //   }
+      // }
+      const labels = response.timestamps;
+      const series = response.series; // объект с нужными ключами
+
+      // Преобразуем в массив datasets для Chart.js
+      const datasets = Object.keys(series).map(key => ({
+        label: key,
+        data: series[key]
+      }));
+
+      window.chart = new Chart(ctx, {
+        type: 'line',
+        data: { labels, datasets },
+        options: { responsive: true, scales: { x: { type: 'time' } } }
+      });
+    });
     }
     document.getElementById('buildChart').addEventListener('click', buildChart);
 

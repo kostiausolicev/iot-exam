@@ -1,104 +1,96 @@
-// Ожидание полной загрузки DOM перед выполнением скрипта
 document.addEventListener('DOMContentLoaded', () => {
-    // Ссылки на элементы интерфейса
-    const toggleCollect = document.getElementById('toggleCollect'); // Чекбокс для включения/выключения сбора данных
-    const toggleSave = document.getElementById('toggleSave'); // Чекбокс для включения/выключения сохранения в БД
-    const updateFreq = document.getElementById('updateFreq'); // Поле для частоты обновления
-    const saveThresholdsBtn = document.getElementById('saveThresholds'); // Кнопка сохранения порогов
-    const rawTableBody = document.querySelector('#rawDataTable tbody'); // Тело таблицы сырых данных
-    const physTableBody = document.querySelector('#physicalDataTable tbody'); // Тело таблицы физических данных
-    const alertLogDiv = document.getElementById('alertLog'); // Контейнер для лога критических событий
-    let page = 1; // Текущая страница истории
-    let totalPages = 1; // Общее количество страниц для навигации
-    let wsData, wsAlerts; // Экземпляры WebSocket для данных и алертов
 
-    // Список параметров, для которых задаются пороговые значения
+    const deviceSelect = document.getElementById('deviceSelect');
+    const fromInput = document.getElementById('fromTime');
+    const toInput = document.getElementById('toTime');
+    const msSelect = document.getElementById('msSelect');
+    const buildBtn = document.getElementById('buildChart');
+    const ctx = document.getElementById('dataChart').getContext('2d');
+    let chartInstance = null;
+
+    const toggleCollect = document.getElementById('toggleCollect');
+    const toggleSave = document.getElementById('toggleSave');
+    const updateFreq = document.getElementById('updateFreq');
+    const saveThresholdsBtn = document.getElementById('saveThresholds');
+    const rawTableBody = document.querySelector('#rawDataTable tbody');
+    const physTableBody = document.querySelector('#physicalDataTable tbody');
+    const alertLogDiv = document.getElementById('alertLog');
+
+    let wsData, wsAlerts;
+    let page = 1,
+        totalPages = 1;
+
     const params = [
         'm1', 'm2', 'm3', 'm4', 'm5', 'm6',
         't1', 't2', 't3', 't4', 't5', 't6',
         'l1', 'l2', 'l3', 'l4', 'l5', 'l6',
+        'X', 'Y', 'T', 'G', 'V'
     ];
 
-    /**
-     * Динамическое создание полей ввода для пороговых значений
-     */
+
+    fetch('http://localhost:8080/api/devices')
+        .then(res => res.json())
+        .then(devices => {
+            deviceSelect.innerHTML = '';
+            devices.forEach(d => {
+                const opt = document.createElement('option');
+                opt.value = d.id;
+                opt.textContent = d.name;
+                deviceSelect.appendChild(opt);
+            });
+        })
+        .catch(err => console.error('Не удалось загрузить устройства:', err));
+
+
     function renderThresholdInputs() {
         const container = document.getElementById('thresholds');
-        container.innerHTML = ''; // Очистка контейнера
-        params.forEach(param => {
-            // Поля для Warning-диапазона
-            const warnLabel = document.createElement('label');
-            warnLabel.textContent = `Warning ${param}`;
-            const warnMin = document.createElement('input');
-            warnMin.type = 'number';
-            warnMin.id = `warn_${param}_min`;
-            warnMin.placeholder = 'Min';
-            const warnMax = document.createElement('input');
-            warnMax.type = 'number';
-            warnMax.id = `warn_${param}_max`;
-            warnMax.placeholder = 'Max';
-
-            // Поля для Critical-диапазона
-            const critLabel = document.createElement('label');
-            critLabel.textContent = `Critical ${param}`;
-            const critMin = document.createElement('input');
-            critMin.type = 'number';
-            critMin.id = `crit_${param}_min`;
-            critMin.placeholder = 'Min';
-            const critMax = document.createElement('input');
-            critMax.type = 'number';
-            critMax.id = `crit_${param}_max`;
-            critMax.placeholder = 'Max';
-
-            // Добавление элементов в контейнер
-            container.appendChild(warnLabel);
-            container.appendChild(warnMin);
-            container.appendChild(warnMax);
-            container.appendChild(critLabel);
-            container.appendChild(critMin);
-            container.appendChild(critMax);
+        container.innerHTML = '';
+        params.forEach(p => {
+            ['warn', 'crit'].forEach(type => {
+                const label = document.createElement('label');
+                label.textContent = `${type==='warn'?'Warning':'Critical'} ${p}`;
+                const min = document.createElement('input');
+                min.type = 'number';
+                min.id = `${type}_${p}_min`;
+                min.placeholder = 'Min';
+                const max = document.createElement('input');
+                max.type = 'number';
+                max.id = `${type}_${p}_max`;
+                max.placeholder = 'Max';
+                container.appendChild(label);
+                container.appendChild(min);
+                container.appendChild(max);
+            });
         });
     }
-    renderThresholdInputs(); // Вызов функции для начальной отрисовки полей
+    renderThresholdInputs();
 
-    /**
-     * Загрузка сохраненных порогов с сервера и заполнение полей
-     */
     function loadThresholds() {
         fetch('http://localhost:8080/api/thresholds')
             .then(res => res.json())
             .then(data => {
-                // Предполагается, что данные имеют формат { m1: { warn_min, warn_max, crit_min, crit_max }, ... }
-                params.forEach(param => {
-                    const warnMin = data[param].warn_min
-                    const warnMax = data[param].warn_max
-                    const critMin = data[param].crit_min
-                    const critMax = data[param].crit_max
-                    document.getElementById(`warn_${param}_min`).value = warnMin;
-                    document.getElementById(`warn_${param}_max`).value = warnMax;
-                    document.getElementById(`crit_${param}_min`).value = critMin;
-                    document.getElementById(`crit_${param}_max`).value = critMax;
+                params.forEach(p => {
+                    const t = data[p] || {};
+                    document.getElementById(`warn_${p}_min`).value = t.warning?.min ?? '';
+                    document.getElementById(`warn_${p}_max`).value = t.warning?.max ?? '';
+                    document.getElementById(`crit_${p}_min`).value = t.critical?.min ?? '';
+                    document.getElementById(`crit_${p}_max`).value = t.critical?.max ?? '';
                 });
             });
     }
 
-    /**
-     * Сбор значений порогов из полей и отправка на сервер
-     */
     function saveThresholds() {
         const payload = {};
-        params.forEach(param => {
-            const warnMin = document.getElementById(`warn_${param}_min`).value;
-            const warnMax = document.getElementById(`warn_${param}_max`).value;
-            const critMin = document.getElementById(`crit_${param}_min`).value;
-            const critMax = document.getElementById(`crit_${param}_max`).value;
-            payload[param] = {
-                warn_min: warnMin,
-                warn_max: warnMax,
-                crit_min: critMin,
-                crit_max: critMax
-                // warning: { min: warnMin, max: warnMax },
-                // critical: { min: critMin, max: critMax }
+        params.forEach(p => {
+            payload[p] = {
+                warning: {
+                    min: +document.getElementById(`warn_${p}_min`).value,
+                    max: +document.getElementById(`warn_${p}_max`).value
+                },
+                critical: {
+                    min: +document.getElementById(`crit_${p}_min`).value,
+                    max: +document.getElementById(`crit_${p}_max`).value
+                }
             };
         });
         fetch('http://localhost:8080/api/thresholds', {
@@ -107,260 +99,221 @@ document.addEventListener('DOMContentLoaded', () => {
             body: JSON.stringify(payload)
         }).then(() => alert('Пороги сохранены'));
     }
+    saveThresholdsBtn.addEventListener('click', saveThresholds);
+    loadThresholds();
 
-    // Инициализация: загрузка конфигурации и порогов
-    fetch('/api/config')
+
+    fetch('http://localhost:8080/api/config')
         .then(res => res.json())
         .then(cfg => {
-            updateFreq.value = cfg.frequency; // Установка частоты обновления
-            toggleSave.checked = cfg.save; // Установка флага сохранения
-            toggleCollect.checked = cfg.collect; // Установка флага сбора данных
-            if (toggleCollect.checked) startDataWS(); // Запуск WebSocket для данных, если сбор включен
-            startAlertsWS(); // Запуск WebSocket для алертов
-        });
-    loadThresholds(); // Загрузка порогов
-
-    if (toggleCollect.checked) {
-        startDataWS(); // Запуск WebSocket при включении
-        startAlertsWS();
-    }
-
-    // Обработчики событий для переключателей и поля частоты
-    toggleCollect.addEventListener('change', () => {
-        if (toggleCollect.checked) {
-            startDataWS(); // Запуск WebSocket при включении
+            toggleCollect.checked = cfg.collect;
+            toggleSave.checked = cfg.save;
+            updateFreq.value = cfg.frequency;
+            if (cfg.collect) startDataWS();
             startAlertsWS();
-        } else {
-            stopDataWS(); // Остановка WebSocket при выключении
-            stopAlertsWS();
-        }
-        fetch('/api/config', {
+        });
+
+    toggleCollect.addEventListener('change', () => {
+        toggleCollect.checked ? startDataWS() : stopDataWS();
+        fetch('http://localhost:8080/api/config', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ collect: toggleCollect.checked })
         });
     });
-
     toggleSave.addEventListener('change', () => {
-        fetch('/api/config', {
+        fetch('http://localhost:8080/api/config', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ save: toggleSave.checked })
         });
     });
-
     updateFreq.addEventListener('change', () => {
-        fetch('/api/config', {
+        fetch('http://localhost:8080/api/config', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ frequency: updateFreq.value })
+            body: JSON.stringify({ frequency: +updateFreq.value })
         });
     });
 
-    // Обработчик для сохранения порогов
-    saveThresholdsBtn.addEventListener('click', saveThresholds);
 
-    // Обработчики для загрузки истории и навигации по страницам
-    document.getElementById('loadHistory').addEventListener('click', () => {
-        page = 1; // Сброс на первую страницу
-        loadHistory(page); // Загрузка истории
-    });
-
-    document.getElementById('prevPage').addEventListener('click', () => {
-        if (page > 1) {
-            page--; // Переход на предыдущую страницу
-            loadHistory(page);
-        }
-    });
-
-    document.getElementById('nextPage').addEventListener('click', () => {
-        if (page < totalPages) {
-            page++; // Переход на следующую страницу
-            loadHistory(page);
-        }
-    });
-
-    document.getElementById('clearLog').addEventListener('click', () => {
-        alertLogDiv.innerHTML = ''; // Очистка лога
-        fetch('http://localhost:8080/api/alerts/clear', { method: 'POST' }); // Очистка лога на сервере
-    });
-
-    /**
-     * Запуск WebSocket для получения сырых и физических данных
-     */
     function startDataWS() {
         wsData = new WebSocket('ws://localhost:8080/api/monitor/ws/data');
-        wsData.onmessage = event => {
-            const payload = JSON.parse(event.data);
-            console.log(payload)
-            updateRawTable(payload.raw); // Обновление таблицы сырых данных
-            updatePhysTable(payload.physical); // Обновление таблицы физических данных
+        wsData.onmessage = e => {
+            const { raw, physical } = JSON.parse(e.data);
+            updateRawTable(raw);
+            updatePhysTable(physical);
         };
     }
 
-    /**
-     * Остановка WebSocket для данных
-     */
     function stopDataWS() {
-        if (wsData) wsData.close(); // Закрытие WebSocket, если он существует
+        if (wsData) wsData.close();
     }
 
-    /**
-     * Запуск WebSocket для получения алертов
-     */
+
     function startAlertsWS() {
         wsAlerts = new WebSocket('ws://localhost:8080/api/alerts/ws/alerts');
-        wsAlerts.onmessage = event => {
-            const alert = JSON.parse(event.data);
-            appendAlert(alert); // Добавление алерта в лог
+        wsAlerts.onmessage = e => {
+            const a = JSON.parse(e.data);
+            const div = document.createElement('div');
+            div.textContent = `${a.level}: ${a.timestamp} ${a.message}`;
+            alertLogDiv.prepend(div);
         };
     }
 
-    /**
-     * Остановка WebSocket для данных
-     */
     function stopAlertsWS() {
-        if (wsAlerts) wsAlerts.close(); // Закрытие WebSocket, если он существует
+        if (wsAlerts) wsAlerts.close();
     }
 
-    /**
-     * Обновление таблицы сырых данных
-     * @param {Array} data - Массив объектов с полями device, m1..b3
-     */
+
     function updateRawTable(data) {
-        rawTableBody.innerHTML = ''; // Очистка таблицы
-        data.forEach(item => {
+        rawTableBody.innerHTML = '';
+        data.forEach(it => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td>${item.device}</td>
-                <td>${item.m1}</td><td>${item.m2}</td><td>${item.m3}</td>
-                <td>${item.m4}</td><td>${item.m5}</td><td>${item.m6}</td>
-                <td>${item.t1}</td><td>${item.t2}</td><td>${item.t3}</td>
-                <td>${item.t4}</td><td>${item.t5}</td><td>${item.t6}</td>
-                <td>${item.l1}</td><td>${item.l2}</td><td>${item.l3}</td>
-                <td>${item.l4}</td><td>${item.l5}</td><td>${item.l6}</td>
-                <td>${item.X}</td><td>${item.Y}</td><td>${item.T}</td>
-                <td>${item.G}</td><td>${item.V}</td>
-                <td>${item.code}</td><td>${item.p}</td>
-                <td>${item.b1}</td><td>${item.b2}</td><td>${item.b3}</td>
-            `;
-            rawTableBody.appendChild(tr); // Добавление строки в таблицу
+        <td>${it.device}</td>
+        <td>${it.m1}</td><td>${it.m2}</td><td>${it.m3}</td>
+        <td>${it.m4}</td><td>${it.m5}</td><td>${it.m6}</td>
+        <td>${it.t1}</td><td>${it.t2}</td><td>${it.t3}</td>
+        <td>${it.t4}</td><td>${it.t5}</td><td>${it.t6}</td>
+        <td>${it.l1}</td><td>${it.l2}</td><td>${it.l3}</td>
+        <td>${it.l4}</td><td>${it.l5}</td><td>${it.l6}</td>
+        <td>${it.X}</td><td>${it.Y}</td><td>${it.T}</td>
+        <td>${it.G}</td><td>${it.V}</td>
+        <td>${it.code}</td><td>${it.p}</td>
+        <td>${it.b1}</td><td>${it.b2}</td><td>${it.b3}</td>
+      `;
+            rawTableBody.appendChild(tr);
         });
     }
 
-    /**
-     * Обновление таблицы физических данных с подсветкой статусов
-     * @param {Array} data - Массив объектов с полями theta1..b3 и статусами status_theta1..
-     */
     function updatePhysTable(data) {
-        physTableBody.innerHTML = ''; // Очистка таблицы
-        data.forEach(item => {
+        physTableBody.innerHTML = '';
+        data.forEach(it => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td>${item.device}</td>
-                <td>${item.theta1}</td>
-                <td>${item.theta2}</td>
-                <td>${item.theta3}</td>
-                <td>${item.theta4}</td>
-                <td>${item.theta5}</td>
-                <td>${item.theta6}</td>
-                <td>${item.T1}</td>
-                <td>${item.T2}</td>
-                <td>${item.T3}</td>
-                <td>${item.T4}</td>
-                <td>${item.T5}</td>
-                <td>${item.T6}</td>
-                <td>${item.L1}</td>
-                <td>${item.L2}</td>
-                <td>${item.L3}</td>
-                <td>${item.L4}</td>
-                <td>${item.L5}</td>
-                <td>${item.L6}</td>
-                <td>${item.X}</td>
-                <td>${item.Y}</td>
-                <td>${item.Tpos}</td>
-                <td>${item.G}</td>
-                <td>${item.V}</td>
-                <td>${item.code}</td>
-                <td>${item.p}</td>
-                <td>${item.b1}</td>
-                <td>${item.b2}</td>
-                <td>${item.b3}</td>
-            `;
-            physTableBody.appendChild(tr); // Добавление строки в таблицу
+        <td>${it.device}</td>
+        <td>${it.theta1}</td><td>${it.theta2}</td>
+        <td>${it.theta3}</td><td>${it.theta4}</td>
+        <td>${it.theta5}</td><td>${it.theta6}</td>
+        <td>${it.T1}</td><td>${it.T2}</td>
+        <td>${it.T3}</td><td>${it.T4}</td>
+        <td>${it.T5}</td><td>${it.T6}</td>
+        <td>${it.L1}</td><td>${it.L2}</td>
+        <td>${it.L3}</td><td>${it.L4}</td>
+        <td>${it.L5}</td><td>${it.L6}</td>
+        <td>${it.X}</td><td>${it.Y}</td><td>${it.Tpos}</td>
+        <td>${it.G}</td><td>${it.V}</td>
+        <td>${it.code}</td><td>${it.p}</td>
+        <td>${it.b1}</td><td>${it.b2}</td><td>${it.b3}</td>
+      `;
+            physTableBody.appendChild(tr);
         });
     }
 
-    /**
-     * Добавление записи критического события в лог
-     * @param {Object} alert - Объект алерта: { timestamp, device, param, value, threshold }
-     */
-    function appendAlert(alert) {
-        const div = document.createElement('div');
-        // div.textContent = `${alert.timestamp} - ${alert.device}: ${alert.param}=${alert.value}, порог=${alert.threshold}`;
-        div.textContent = `${alert.level}:${alert.timestamp} ${alert.message}`
-        alertLogDiv.prepend(div); // Добавление записи в начало лога
-    }
-
-    /**
-     * Построение графика по выбранным параметрам и временному диапазону
-     */
-    function buildChart() {
-        const from = document.getElementById('fromTime').value;
-        const to = document.getElementById('toTime').value;
-        const paramsSelected = Array.from(document.querySelectorAll('.chartParam:checked')).map(cb => cb.value);
-        fetch(`http://localhost:8080/api/data?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&ms=${paramsSelected.join(',')}`)
-            .then(res => res.json())
-            .then(data => {
-                console.log(data)
-                const ctx = document.getElementById('dataChart').getContext('2d');
-                if (window.chart) window.chart.destroy(); // Уничтожение предыдущего графика
-                window.chart = new Chart(ctx, {
-                    type: 'line',
-                    data: data,
-                    options: {
-                        responsive: true,
-                        scales: { x: { type: 'time' } }
-                    }
-                });
-            });
-    }
-    document.getElementById('buildChart').addEventListener('click', buildChart);
-
-    /**
-     * Загрузка истории данных по временному диапазону и номеру страницы
-     * @param {number} pageNum - Номер страницы
-     */
-    function loadHistory(pageNum) {
+    function loadHistory(pg) {
         const from = document.getElementById('histFrom').value;
         const to = document.getElementById('histTo').value;
-        fetch(`/api/data/history?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&page=${pageNum}`)
-            .then(res => res.json())
-            .then(result => {
-                const tbody = document.querySelector('#historyTable tbody');
-                tbody.innerHTML = ''; // Очистка таблицы
-                result.entries.forEach(r => {
+        fetch(`http://localhost:8080/api/data/history?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&page=${pg}`)
+            .then(r => r.json())
+            .then(res => {
+                const tb = document.querySelector('#historyTable tbody');
+                tb.innerHTML = '';
+                res.entries.forEach(r => {
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
-                        <td>${r.timestamp}</td>
-                        <td>${r.device}</td>
-                        <td>${r.raw}</td>
-                        <td>${r.physical}</td>
-                        <td>${r.status}</td>
-                    `;
-                    tbody.appendChild(tr); // Добавление строки в таблицу
+            <td>${r.timestamp}</td>
+            <td>${r.device}</td>
+            <td>${r.raw}</td>
+            <td>${r.physical}</td>
+            <td>${r.status}</td>
+          `;
+                    tb.appendChild(tr);
                 });
-                page = result.page; // Обновление текущей страницы
-                totalPages = result.totalPages; // Обновление общего количества страниц
-                document.getElementById('pageInfo').textContent = `Стр. ${result.page} из ${result.totalPages}`;
-                // Управление активностью кнопок навигации
+                page = res.page;
+                totalPages = res.totalPages;
+                document.getElementById('pageInfo').textContent = `Стр. ${page} из ${totalPages}`;
                 document.getElementById('prevPage').disabled = page <= 1;
                 document.getElementById('nextPage').disabled = page >= totalPages;
             });
     }
+    document.getElementById('loadHistory').addEventListener('click', () => {
+        page = 1;
+        loadHistory(1);
+    });
+    document.getElementById('prevPage').addEventListener('click', () => { if (page > 1) loadHistory(--page); });
+    document.getElementById('nextPage').addEventListener('click', () => { if (page < totalPages) loadHistory(++page); });
 
-    // Обработчик для смены роли на операторский интерфейс
+
+function buildChart() {
+  const deviceId = deviceSelect.value;
+  const from     = fromInput.value;
+  const to       = toInput.value;
+  const ms       = msSelect.value;
+
+  if (!deviceId || !from || !to || !ms) {
+    alert('Выберите устройство, параметр и укажите диапазон по времени');
+    return;
+  }
+
+  const url = `http://localhost:8080/api/data?deviceId=${encodeURIComponent(deviceId)}`
+            + `&from=${encodeURIComponent(from)}`
+            + `&to=${encodeURIComponent(to)}`
+            + `&ms=${encodeURIComponent(ms)}`;
+
+  fetch(url)
+    .then(r => r.json())
+    .then(resp => {
+      // Формируем данные для графика — для каждого параметра массив {x: timestamp, y: value}
+      const datasets = ['X', 'Y', 'T'].map(key => ({
+        label: key,
+        data: resp.timestamps.map((ts, i) => ({
+          x: ts,
+          y: resp[key][i]
+        })),
+        borderColor: key === 'X' ? 'red' : key === 'Y' ? 'green' : 'blue',
+        fill: false,
+        tension: 0.1
+      }));
+
+      if (chartInstance) chartInstance.destroy();
+      chartInstance = new Chart(ctx, {
+        type: 'line',
+        data: { datasets },
+        options: {
+          responsive: true,
+          scales: {
+            x: {
+              type: 'time',
+              time: {
+                parser: 'isoDateTime',
+                tooltipFormat: 'PPpp',
+                unit: 'second'
+              },
+              title: { display: true, text: 'Время' }
+            },
+            y: {
+              title: { display: true, text: 'Значение' }
+            }
+          },
+          plugins: {
+            legend: {
+              display: true,
+              position: 'top'
+            }
+          }
+        }
+      });
+    })
+    .catch(err => {
+      console.error('Ошибка при загрузке графика:', err);
+      alert('Не удалось загрузить данные графика');
+    });
+}
+
+    buildBtn.addEventListener('click', buildChart);
+
     document.getElementById('switchRole').addEventListener('click', () => {
-        window.location.href = '../operator/index.html'; // Перенаправление на интерфейс оператора
+        window.location.href = '../operator/index.html';
     });
 });

@@ -6,12 +6,14 @@ import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationStopped
 import io.ktor.server.application.log
 import io.ktor.server.config.tryGetString
+import kotlinx.coroutines.runBlocking
 import org.koin.ktor.ext.inject
 
 enum class Collections(val collectionName: String) {
     COMMANDS("commands"),
     POI("poi"),
-    LOGS("logs")
+    LOGS("logs"),
+    METRIC("metrics")
 }
 
 fun Application.getMongoDbClient(): MongoClient {
@@ -32,6 +34,12 @@ fun Application.connectToMongoDB(): MongoDatabase {
     val mongoClient by inject<MongoClient>()
 
     val database = mongoClient.getDatabase(databaseName)
+
+    runBlocking {
+        Collections.entries.forEach { collection ->
+            database.createCollection(collection.collectionName)
+        }
+    }
 
     monitor.subscribe(ApplicationStopped) {
         mongoClient.close()

@@ -11,6 +11,7 @@ import java.time.LocalDateTime
 data class CommandDto(
     @SerialName("n") var N: Int = 0,
     @SerialName("device") var device: String = "",
+    @SerialName("deviceId") var deviceId: Int = -1,
     @SerialName("params") @Serializable(AnyMapSerializer::class) var params: Map<String, Any?> = emptyMap(),
     @SerialName("status") var status: String = "",
     @SerialName("timestamp") @Serializable(LocalDateSerializer::class) var timestamp: LocalDateTime = LocalDateTime.now()

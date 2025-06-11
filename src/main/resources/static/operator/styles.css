@@ -120,6 +120,24 @@ body {
     background: grey;
 }
 
+.indicator-blue {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-left: 5px;
+    background: blue;
+}
+
+.indicator-green {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-left: 5px;
+    background: green;
+}
+
 .queue-table,
 .poi-table {
     width: 100%;

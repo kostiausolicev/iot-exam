@@ -71,10 +71,10 @@ document.addEventListener('DOMContentLoaded', () => {
             .then(data => {
                 params.forEach(p => {
                     const t = data[p] || {};
-                    document.getElementById(`warn_${p}_min`).value = t.warning?.min ?? '';
-                    document.getElementById(`warn_${p}_max`).value = t.warning?.max ?? '';
-                    document.getElementById(`crit_${p}_min`).value = t.critical?.min ?? '';
-                    document.getElementById(`crit_${p}_max`).value = t.critical?.max ?? '';
+                    document.getElementById(`warn_${p}_min`).value = t.warning ?.min ?? '';
+                    document.getElementById(`warn_${p}_max`).value = t.warning ?.max ?? '';
+                    document.getElementById(`crit_${p}_min`).value = t.critical ?.min ?? '';
+                    document.getElementById(`crit_${p}_max`).value = t.critical ?.max ?? '';
                 });
             });
     }
@@ -245,6 +245,8 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('nextPage').addEventListener('click', () => { if (page < totalPages) loadHistory(++page); });
 
 
+let chart; // глобальная переменная для графика
+
 function buildChart() {
   const deviceId = deviceSelect.value;
   const from     = fromInput.value;
@@ -262,52 +264,91 @@ function buildChart() {
             + `&ms=${encodeURIComponent(ms)}`;
 
   fetch(url)
-    .then(r => r.json())
-    .then(resp => {
-      // Формируем данные для графика — для каждого параметра массив {x: timestamp, y: value}
-      const datasets = ['X', 'Y', 'T'].map(key => ({
-        label: key,
-        data: resp.timestamps.map((ts, i) => ({
-          x: ts,
-          y: resp[key][i]
-        })),
-        borderColor: key === 'X' ? 'red' : key === 'Y' ? 'green' : 'blue',
-        fill: false,
-        tension: 0.1
-      }));
+    .then(data => {
+      // Универсальная обёртка: если массив — берём первый элемент, если объект — оставляем как есть
+      const parsed = Array.isArray(data) ? data[0] : data;
 
-      if (chartInstance) chartInstance.destroy();
-      chartInstance = new Chart(ctx, {
+      if (!parsed || !parsed.timestamps || !parsed.X || !parsed.Y || !parsed.T) {
+        alert('Пустой или некорректный ответ от сервера');
+        return;
+      }
+
+      const timestamps = parsed.timestamps.map(ts => new Date(ts).toLocaleTimeString());
+      const xValues = parsed.X;
+      const yValues = parsed.Y;
+      const tValues = parsed.T;
+
+      const ctx = document.getElementById('dataChart').getContext('2d');
+
+      if (chart) chart.destroy();
+
+      chart = new Chart(ctx, {
         type: 'line',
-        data: { datasets },
+        data: {
+          labels: timestamps,
+          datasets: [
+            {
+              label: 'X',
+              data: xValues,
+              borderColor: 'rgba(255, 99, 132, 1)',
+              backgroundColor: 'rgba(255, 99, 132, 0.2)',
+              fill: false,
+              tension: 0.1
+            },
+            {
+              label: 'Y',
+              data: yValues,
+              borderColor: 'rgba(54, 162, 235, 1)',
+              backgroundColor: 'rgba(54, 162, 235, 0.2)',
+              fill: false,
+              tension: 0.1
+            },
+            {
+              label: 'T',
+              data: tValues,
+              borderColor: 'rgba(255, 206, 86, 1)',
+              backgroundColor: 'rgba(255, 206, 86, 0.2)',
+              fill: false,
+              tension: 0.1
+            }
+          ]
+        },
         options: {
           responsive: true,
           scales: {
             x: {
-              type: 'time',
-              time: {
-                parser: 'isoDateTime',
-                tooltipFormat: 'PPpp',
-                unit: 'second'
-              },
-              title: { display: true, text: 'Время' }
+              title: {
+                display: true,
+                text: 'Время'
+              }
             },
             y: {
-              title: { display: true, text: 'Значение' }
+              title: {
+                display: true,
+                text: 'Значение'
+              }
             }
           },
+          interaction: {
+            mode: 'index',
+            intersect: false
+          },
           plugins: {
-            legend: {
+            title: {
               display: true,
-              position: 'top'
+              text: 'Графики X, Y и T по времени'
+            },
+            tooltip: {
+              mode: 'index',
+              intersect: false
             }
           }
         }
       });
     })
-    .catch(err => {
-      console.error('Ошибка при загрузке графика:', err);
-      alert('Не удалось загрузить данные графика');
+    .catch(error => {
+      console.error('Ошибка при получении данных:', error);
+      alert('Не удалось получить данные с сервера');
     });
 }
 
